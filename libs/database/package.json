@@ -1,0 +1,17 @@
+{
+  "name": "@razworks/database",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.86.0",
+    "drizzle-orm": "^0.44.7",
+    "postgres": "^3.4.7",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.9",
+    "drizzle-kit": "^0.31.7"
+  }
+}

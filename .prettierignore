@@ -1,0 +1,24 @@
+# Add files here to ignore them from prettier formatting
+/dist
+/coverage
+/.nx/cache
+/.nx/workspace-data
+
+# Ignorar dependencias y builds
+node_modules
+dist
+tmp
+coverage
+
+# Ignorar archivos generados por Next.js
+.next
+out
+build
+
+# Ignorar archivos de caché de Nx
+.nx
+
+# Ignorar archivos de configuración de gestores de paquetes
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
