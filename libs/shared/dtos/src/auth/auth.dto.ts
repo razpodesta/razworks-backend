@@ -16,7 +16,8 @@ export type LoginDto = z.infer<typeof LoginSchema>;
 // Register Input
 export const RegisterSchema = LoginSchema.extend({
   fullName: z.string().min(3, { message: 'Nome completo é obrigatório' }),
-  role: z.enum(['CLIENT', 'FREELANCER'], { required_error: 'Selecione um perfil' }),
+  // FIX: Usamos 'message' en lugar de 'required_error' para compatibilidad con TS Strict
+  role: z.enum(['CLIENT', 'FREELANCER'], { message: 'Selecione um perfil válido (CLIENT ou FREELANCER)' }),
 });
 
 export type RegisterDto = z.infer<typeof RegisterSchema>;
