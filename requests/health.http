@@ -1,0 +1,45 @@
+### ---------------------------------------------------------
+### PRUEBA 1: Health Check del API Gateway
+### Objetivo: Verificar que NestJS está corriendo y responde
+### ---------------------------------------------------------
+GET http://localhost:3000/api
+Content-Type: application/json
+
+### ---------------------------------------------------------
+### PRUEBA 2: Validación de Google AI (Vía Endpoint)
+### Objetivo: Probar si el endpoint de IA responde (requiere .env cargado)
+### Nota: Este endpoint asumimos que existe o existirá pronto
+### ---------------------------------------------------------
+POST http://localhost:3000/api/ai/diagnose
+Content-Type: application/json
+
+{
+  "prompt": "Say Hello RazWorks"
+}
+
+### ---------------------------------------------------------
+### PRUEBA 3: Intento de Registro (Auth)
+### Objetivo: Validar conexión a Supabase Auth y DB
+### ---------------------------------------------------------
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test-protocolo-007@razworks.com",
+  "password": "PasswordSeguro123!",
+  "fullName": "Test User Protocolo",
+  "role": "CLIENT"
+}
+
+### ---------------------------------------------------------
+### PRUEBA 4: Integración Real con Librería AI (PDF Standard)
+### Objetivo: Verificar que la API puede llamar a libs/ai-system
+### ---------------------------------------------------------
+POST http://localhost:3000/api/test-ai
+Content-Type: application/json
+
+{
+  "prompt": "Explica brevemente qué es una arquitectura orientada a eventos en una frase."
+}
+
+

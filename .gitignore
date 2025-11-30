@@ -30,3 +30,5 @@ playwright/.cache/
 # Sistemas Operativos
 .DS_Store
 Thumbs.db
+
+reports/

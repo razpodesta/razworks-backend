@@ -1,0 +1,8 @@
+# RUTA: apps/web-admin/public/robots.txt
+# VERSIÓN: 1.0 - Directivas para Crawlers
+# DESCRIPCIÓN: Permite el acceso a todos los crawlers y les indica la ubicación del sitemap.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://[TU_DOMINIO_FINAL]/sitemap.xml

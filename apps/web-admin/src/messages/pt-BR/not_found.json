@@ -1,0 +1,6 @@
+{
+  "title": "Página Não Encontrada",
+  "description": "A rota solicitada não existe dentro dos limites do Painel Administrativo.",
+  "cta_button": "Voltar ao Dashboard",
+  "error_code": "ERR_404_ADMIN_BR"
+}

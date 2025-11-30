@@ -1,0 +1,12 @@
+{
+  "welcome_title": "Welcome to RazWorks",
+  "welcome_subtitle": "System Overview",
+  "stats": {
+    "total_revenue": "Total Revenue",
+    "active_projects": "Active Projects",
+    "new_users": "New Users",
+    "system_status": "Server Status"
+  },
+  "recent_activity_title": "Recent Activity",
+  "quick_actions": "Quick Actions"
+}

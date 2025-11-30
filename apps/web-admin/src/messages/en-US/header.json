@@ -1,0 +1,11 @@
+{
+  "search_placeholder": "Search system (Cmd+K)...",
+  "user_profile": "My Profile",
+  "settings": "Settings",
+  "logout": "Logout",
+  "notifications": "Notifications",
+  "notifications_empty": "No new notifications",
+  "theme_toggle_label": "Toggle theme",
+  "language_selector": "Change language",
+  "mobile_menu_toggle": "Open menu"
+}

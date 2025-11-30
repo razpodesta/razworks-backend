@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: razworks-api
+    env: node
+    plan: free # Cambiar a 'starter' para producción real
+    buildCommand: pnpm install && pnpm run render-build
+    startCommand: pnpm run start:api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 20.11.0
+    autoDeploy: false

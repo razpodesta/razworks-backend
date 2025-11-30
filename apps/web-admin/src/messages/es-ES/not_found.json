@@ -1,0 +1,6 @@
+{
+  "title": "Página No Encontrada",
+  "description": "La ruta solicitada no existe dentro de los límites del Panel Administrativo.",
+  "cta_button": "Volver al Dashboard",
+  "error_code": "ERR_404_ADMIN_ES"
+}

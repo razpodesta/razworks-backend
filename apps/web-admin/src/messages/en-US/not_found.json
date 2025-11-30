@@ -1,0 +1,6 @@
+{
+  "title": "Page Not Found",
+  "description": "The requested route does not exist within the Admin Panel.",
+  "cta_button": "Back to Dashboard",
+  "error_code": "ERR_404_LOCAL"
+}

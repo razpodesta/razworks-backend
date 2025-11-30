@@ -1,0 +1,19 @@
+{
+  "name": "security",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/security/src",
+  "projectType": "library",
+  "tags": ["scope:infra", "type:security"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/security",
+        "main": "libs/security/src/index.ts",
+        "tsConfig": "libs/security/tsconfig.lib.json",
+        "assets": ["libs/security/*.md"]
+      }
+    }
+  }
+}

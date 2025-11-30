@@ -1,0 +1,51 @@
+### 🛑 PRE-REQUISITOS
+# 1. Asegúrate de que el servidor esté corriendo: pnpm run dev:api
+# 2. Asegúrate de tener en tu .env: WHATSAPP_VERIFY_TOKEN=razworks_secret_v1
+
+### 1. PRUEBA DE HANDSHAKE EXITOSO (Simulación Meta)
+# Meta envía: hub.mode=subscribe, hub.verify_token={TU_TOKEN}, hub.challenge={RANDOM_STRING}
+# Esperamos: 200 OK y el cuerpo debe ser exactamente "11223344"
+GET http://localhost:3000/api/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=razworks_secret_v1&hub.challenge=11223344
+
+### 2. PRUEBA DE TOKEN INCORRECTO (Seguridad)
+# Un atacante intenta adivinar tu webhook
+# Esperamos: 403 Forbidden
+GET http://localhost:3000/api/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=HACKER_TOKEN&hub.challenge=11223344
+
+### 3. PRUEBA DE INGESTA DE MENSAJE (POST)
+# Simulación de un mensaje entrante de WhatsApp
+# Esperamos: 200 OK y { status: "acknowledged" }
+POST http://localhost:3000/api/whatsapp/webhook
+Content-Type: application/json
+
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "123456789",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "1234567890",
+              "phone_number_id": "1234567890"
+            },
+            "messages": [
+              {
+                "from": "5491122334455",
+                "id": "wamid.HBgLM...",
+                "timestamp": "1678888888",
+                "text": {
+                  "body": "Hola, quiero contratar un freelancer"
+                },
+                "type": "text"
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
+}

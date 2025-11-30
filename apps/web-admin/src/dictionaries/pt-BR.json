@@ -1,0 +1,81 @@
+{
+  "app_name": "RazWorks Admin",
+  "header": {
+    "search_placeholder": "Buscar no sistema (Cmd+K)...",
+    "user_profile": "Meu Perfil",
+    "settings": "Configurações",
+    "logout": "Sair",
+    "notifications": "Notificações",
+    "notifications_empty": "Sem novas notificações",
+    "theme_toggle_label": "Alternar tema",
+    "language_selector": "Mudar idioma",
+    "mobile_menu_toggle": "Abrir menu"
+  },
+  "sidebar": {
+    "menu_title": "MENU PRINCIPAL",
+    "dashboard": "Dashboard",
+    "marketplace_management": "Gestão Marketplace",
+    "users_freelancers": "Freelancers",
+    "users_clients": "Clientes",
+    "financials": "Financeiro",
+    "cms_blog": "CMS / Blog",
+    "system_settings": "Configurações",
+    "audit_logs": "Logs de Auditoria",
+    "logout": "Sair"
+  },
+  "footer": {},
+  "dashboard": {
+    "welcome_title": "Bem-vindo ao RazWorks",
+    "welcome_subtitle": "Visão Geral do Sistema",
+    "stats": {
+      "total_revenue": "Receita Total",
+      "active_projects": "Projetos Ativos",
+      "new_users": "Novos Usuários",
+      "system_status": "Status do Servidor"
+    },
+    "recent_activity_title": "Atividade Recente",
+    "quick_actions": "Ações Rápidas"
+  },
+  "common": {
+    "loading": "Carregando...",
+    "error_generic": "Ocorreu um erro inesperado.",
+    "success_generic": "Operação realizada com sucesso.",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "view": "Visualizar",
+    "actions": "Ações",
+    "status": {
+      "active": "Ativo",
+      "pending": "Pendente",
+      "suspended": "Suspenso"
+    },
+    "pagination": {
+      "next": "Próximo",
+      "previous": "Anterior",
+      "showing": "Mostrando"
+    }
+  },
+  "auth": {
+    "login_title": "Acessar Painel",
+    "register_title": "Criar Conta Admin",
+    "email_label": "Endereço de E-mail",
+    "password_label": "Senha",
+    "forgot_password": "Esqueceu a senha?",
+    "submit_login": "Entrar",
+    "submit_register": "Registrar",
+    "social_login_google": "Entrar com Google",
+    "social_login_github": "Entrar com GitHub",
+    "errors": {
+      "invalid_credentials": "Credenciais inválidas.",
+      "user_exists": "Usuário já existe."
+    }
+  },
+  "language_switcher": {},
+  "system_status": {},
+  "not_found": {},
+  "server_error": {},
+  "maintenance": {},
+  "legal": {}
+}

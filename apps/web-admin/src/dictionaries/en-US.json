@@ -1,0 +1,81 @@
+{
+  "app_name": "RazWorks Admin",
+  "header": {
+    "search_placeholder": "Search system (Cmd+K)...",
+    "user_profile": "My Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "notifications": "Notifications",
+    "notifications_empty": "No new notifications",
+    "theme_toggle_label": "Toggle theme",
+    "language_selector": "Change language",
+    "mobile_menu_toggle": "Open menu"
+  },
+  "sidebar": {
+    "menu_title": "MAIN MENU",
+    "dashboard": "Dashboard",
+    "marketplace_management": "Marketplace Mgmt",
+    "users_freelancers": "Freelancers",
+    "users_clients": "Clients",
+    "financials": "Financials",
+    "cms_blog": "CMS / Blog",
+    "system_settings": "Settings",
+    "audit_logs": "Audit Logs",
+    "logout": "Logout"
+  },
+  "footer": {},
+  "dashboard": {
+    "welcome_title": "Welcome to RazWorks",
+    "welcome_subtitle": "System Overview",
+    "stats": {
+      "total_revenue": "Total Revenue",
+      "active_projects": "Active Projects",
+      "new_users": "New Users",
+      "system_status": "Server Status"
+    },
+    "recent_activity_title": "Recent Activity",
+    "quick_actions": "Quick Actions"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error_generic": "An unexpected error occurred.",
+    "success_generic": "Operation successful.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "actions": "Actions",
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "suspended": "Suspended"
+    },
+    "pagination": {
+      "next": "Next",
+      "previous": "Previous",
+      "showing": "Showing"
+    }
+  },
+  "auth": {
+    "login_title": "Access Dashboard",
+    "register_title": "Create Admin Account",
+    "email_label": "Email Address",
+    "password_label": "Password",
+    "forgot_password": "Forgot password?",
+    "submit_login": "Sign In",
+    "submit_register": "Register",
+    "social_login_google": "Sign in with Google",
+    "social_login_github": "Sign in with GitHub",
+    "errors": {
+      "invalid_credentials": "Invalid credentials.",
+      "user_exists": "User already exists."
+    }
+  },
+  "language_switcher": {},
+  "system_status": {},
+  "not_found": {},
+  "server_error": {},
+  "maintenance": {},
+  "legal": {}
+}

@@ -1,0 +1,9 @@
+{
+  "aria_label": "Estado del Sistema",
+  "items": [
+    "Sistema Operativo",
+    "Base de Datos Conectada",
+    "IA Cortex Activa",
+    "Redis Sincronizado"
+  ]
+}

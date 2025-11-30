@@ -1,0 +1,19 @@
+{
+  "name": "client",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/toolbox/client/src",
+  "projectType": "library",
+  "tags": ["scope:toolbox", "type:feature"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/toolbox/client",
+        "main": "libs/toolbox/client/src/index.ts",
+        "tsConfig": "libs/toolbox/client/tsconfig.lib.json",
+        "assets": ["libs/toolbox/client/*.md"]
+      }
+    }
+  }
+}

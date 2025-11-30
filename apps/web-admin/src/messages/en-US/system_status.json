@@ -1,0 +1,4 @@
+{
+  "aria_label": "System Status",
+  "items": ["System Online", "Database Healthy", "Redis Connected"]
+}

@@ -14,7 +14,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "../../libs/shared/dtos/src/lib/pipes/zod-validation.pipe.ts"],
   "exclude": [
     "jest.config.ts",
     "jest.config.cts",

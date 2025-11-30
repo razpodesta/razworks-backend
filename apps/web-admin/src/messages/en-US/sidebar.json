@@ -1,0 +1,12 @@
+{
+  "menu_title": "MAIN MENU",
+  "dashboard": "Dashboard",
+  "marketplace_management": "Marketplace Mgmt",
+  "users_freelancers": "Freelancers",
+  "users_clients": "Clients",
+  "financials": "Financials",
+  "cms_blog": "CMS / Blog",
+  "system_settings": "Settings",
+  "audit_logs": "Audit Logs",
+  "logout": "Logout"
+}

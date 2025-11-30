@@ -1,0 +1,19 @@
+{
+  "name": "razter",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/toolbox/razter/src",
+  "projectType": "library",
+  "tags": ["scope:toolbox", "type:feature"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/toolbox/razter",
+        "main": "libs/toolbox/razter/src/index.ts",
+        "tsConfig": "libs/toolbox/razter/tsconfig.lib.json",
+        "assets": ["libs/toolbox/razter/*.md"]
+      }
+    }
+  }
+}

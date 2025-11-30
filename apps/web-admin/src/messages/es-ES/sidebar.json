@@ -1,0 +1,12 @@
+{
+  "menu_title": "MENÚ PRINCIPAL",
+  "dashboard": "Panel de Control",
+  "marketplace_management": "Gestión Mercado",
+  "users_freelancers": "Freelancers",
+  "users_clients": "Clientes",
+  "financials": "Finanzas",
+  "cms_blog": "CMS / Blog",
+  "system_settings": "Configuración",
+  "audit_logs": "Logs de Auditoría",
+  "logout": "Cerrar Sesión"
+}

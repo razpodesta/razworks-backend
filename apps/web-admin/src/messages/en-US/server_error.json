@@ -1,0 +1,6 @@
+{
+  "title": "Internal System Error",
+  "description": "A critical fault occurred within the Admin application boundary.",
+  "retry_button": "Retry",
+  "home_button": "Dashboard"
+}

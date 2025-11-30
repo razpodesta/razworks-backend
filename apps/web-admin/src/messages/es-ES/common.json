@@ -1,0 +1,21 @@
+{
+  "loading": "Cargando...",
+  "error_generic": "Ocurrió un error inesperado.",
+  "success_generic": "Operación exitosa.",
+  "save": "Guardar",
+  "cancel": "Cancelar",
+  "delete": "Eliminar",
+  "edit": "Editar",
+  "view": "Ver",
+  "actions": "Acciones",
+  "status": {
+    "active": "Activo",
+    "pending": "Pendiente",
+    "suspended": "Suspendido"
+  },
+  "pagination": {
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "showing": "Mostrando"
+  }
+}

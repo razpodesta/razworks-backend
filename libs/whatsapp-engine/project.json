@@ -1,0 +1,19 @@
+{
+  "name": "whatsapp-engine",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/whatsapp-engine/src",
+  "projectType": "library",
+  "tags": ["scope:whatsapp", "platform:node"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/whatsapp-engine",
+        "main": "libs/whatsapp-engine/src/index.ts",
+        "tsConfig": "libs/whatsapp-engine/tsconfig.lib.json",
+        "assets": ["libs/whatsapp-engine/*.md"]
+      }
+    }
+  }
+}

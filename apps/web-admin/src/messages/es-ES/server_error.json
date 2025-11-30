@@ -1,0 +1,6 @@
+{
+  "title": "Error Interno del Sistema",
+  "description": "Ocurrió un fallo crítico en el núcleo administrativo.",
+  "retry_button": "Reintentar",
+  "home_button": "Ir al Inicio"
+}
