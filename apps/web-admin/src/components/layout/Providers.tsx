@@ -1,13 +1,15 @@
-// RUTA: apps/web-admin/src/components/layout/Providers.tsx
+/**
+ * @fileoverview Wrapper de Contextos Globales (Client Side)
+ */
 'use client';
 
-import React from 'react';
 import { ThemeProvider } from 'next-themes';
+import React from 'react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider
-      attribute="class"       // CRÍTICO: Usa clases (.dark) en lugar de data-attributes
+      attribute="class"
       defaultTheme="system"
       enableSystem
       disableTransitionOnChange

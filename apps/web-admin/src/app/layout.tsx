@@ -1,57 +1,69 @@
-// RUTA: apps/web-admin/src/app/layout.tsx
-// VERSIÓN: 3.0 - "The Master Shell"
-// DESCRIPCIÓN: Layout Raíz Único. Responsable exclusivo del DOM base (html, body)
-//              y de la inyección de recursos globales (Fuentes, CSS).
-
+/**
+ * @fileoverview Layout Raíz del Admin Panel
+ * @description Punto de entrada principal. Maneja fuentes, proveedores y estructura base.
+ */
 import React from 'react';
-import localFont from 'next/font/local';
-import './global.css'; // Importación de estilos globales (Tailwind v4)
+import { Inter, Syne, Space_Grotesk } from 'next/font/google';
+import './global.css';
 
-// --- 1. SISTEMA DE TIPOGRAFÍA CENTRALIZADO ---
-// Cargamos las fuentes aquí para que estén disponibles en TODA la app (incluyendo 404)
+// ✅ IMPORTACIONES CORREGIDAS USANDO ALIAS
+import { Providers } from '@/components/layout/Providers';
+import { RazNavbar } from '@/components/layout/RazNavbar';
+import { getDictionary } from '@/lib/get-dictionary';
+import { i18n, type Locale } from '@/config/i18n.config';
 
-const fontSatoshi = localFont({
-  src: [
-    { path: '../../public/fonts/Satoshi-Variable.woff2', style: 'normal' },
-    { path: '../../public/fonts/Satoshi-VariableItalic.woff2', style: 'italic' },
-  ],
+// Configuración de Fuentes
+const fontSans = Inter({
+  subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
-  preload: true,
 });
 
-const fontSignature = localFont({
-  src: '../../public/fonts/Dicaten.woff2',
-  variable: '--font-signature',
-  display: 'swap',
-  preload: true,
-});
-
-const fontClashDisplay = localFont({
-  src: [
-    { path: '../../public/fonts/ClashDisplay-Regular.woff2', weight: '400', style: 'normal' },
-    { path: '../../public/fonts/ClashDisplay-Bold.woff2', weight: '700', style: 'normal' },
-  ],
+const fontDisplay = Syne({
+  subsets: ['latin'],
   variable: '--font-display',
   display: 'swap',
-  preload: true,
 });
 
-// --- 2. LAYOUT RAÍZ ---
-// Este es el ÚNICO lugar donde deben existir las etiquetas <html> y <body>.
+const fontSignature = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-signature',
+  display: 'swap',
+});
 
-export default function RootLayout({
+// ✅ CORRECCIÓN TS7006: Tipado explícito del parámetro 'locale'
+export async function generateStaticParams() {
+  return i18n.locales.map((locale: Locale) => ({ lang: locale }));
+}
+
+export default async function RootLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ lang: Locale }>;
 }) {
+  const { lang } = await params;
+  const dictionary = await getDictionary(lang);
+
   return (
-    // suppressHydrationWarning es necesario para next-themes
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning>
       <body
-        className={`${fontSatoshi.variable} ${fontSignature.variable} ${fontClashDisplay.variable} font-sans bg-background text-foreground antialiased selection:bg-purple-500/30`}
+        className={`${fontSans.variable} ${fontDisplay.variable} ${fontSignature.variable} font-sans bg-background text-foreground antialiased`}
       >
-        {children}
+        <Providers>
+          <div className="flex min-h-screen flex-col">
+            <RazNavbar dictionary={dictionary} lang={lang} />
+            
+            <main className="grow relative z-0">
+              {children}
+            </main>
+            
+            <footer className="border-t border-zinc-800 py-6 text-center text-xs text-zinc-500 bg-zinc-950">
+              © 2025 RazWorks System. All rights reserved.
+            </footer>
+          </div>
+        </Providers>
       </body>
     </html>
   );

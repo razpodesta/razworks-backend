@@ -1,15 +1,17 @@
 //@ts-check
 
- 
 const { composePlugins, withNx } = require('@nx/next');
 
 /**
  * @type {import('@nx/next/plugins/with-nx').WithNxOptions}
  **/
 const nextConfig = {
-  // Use this to set Nx-specific options
-  // See: https://nx.dev/recipes/next/next-config-setup
+  // FIX: Eliminamos 'svgr: false' ya que no existe en el tipo WithNxOptions actual.
+  // Dejamos el objeto nx vacío o con propiedades válidas si se requieren en el futuro.
   nx: {},
+
+  // Configuración vital para el Monorepo
+  transpilePackages: ['@razworks/security', '@razworks/ui', '@razworks/dtos'],
 };
 
 const plugins = [
