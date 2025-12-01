@@ -1,33 +1,38 @@
 /**
- * @fileoverview Proveedor de Pub/Sub con Redis
+ * @fileoverview Proveedor de Pub/Sub con Redis (IOredis)
  * @module Notifications/Infra
  * @description
- * Puente de comunicación asíncrona para WebSockets.
- * Utiliza instancias separadas para publicar y suscribir (requisito de Redis).
+ * Instancia Singleton para el bus de eventos en tiempo real.
+ * Maneja la reconexión automática y la separación de clientes Publisher/Subscriber.
  */
-import { Global, Module, Provider } from '@nestjs/common';
+import { Global, Module, Provider, Logger } from '@nestjs/common';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
-import { Redis } from 'ioredis';
+import { Redis, RedisOptions } from 'ioredis';
 
 export const PUB_SUB = 'PUB_SUB';
 
 const pubSubProvider: Provider = {
   provide: PUB_SUB,
   useFactory: () => {
-    // Detectar si estamos usando Upstash (HTTP) o Redis TCP estándar.
-    // Para Subscriptions, necesitamos conexión TCP persistente.
-    // Si usas Upstash, asegúrate de usar la URL con puerto 6379 (no la REST API).
+    const logger = new Logger('RedisPubSub');
     const redisUrl = process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL;
 
     if (!redisUrl) {
-      throw new Error('FATAL: REDIS_URL missing for Notification PubSub');
+      throw new Error('FATAL: REDIS_URL is missing. Real-time notifications cannot start.');
     }
 
-    const options = {
-      // Configuración de reintento agresiva para mantener el socket vivo
-      retryStrategy: (times: number) => Math.min(times * 50, 2000),
+    // Configuración optimizada para mantener conexiones vivas en la nube
+    const options: RedisOptions = {
+      retryStrategy: (times) => Math.min(times * 50, 2000),
+      keepAlive: 10000,
+      family: 4, // Forzar IPv4
+      reconnectOnError: (err) => {
+        logger.warn(`Redis connection error: ${err.message}`);
+        return true;
+      }
     };
 
+    // RedisPubSub requiere dos clientes distintos: uno para publicar, otro para escuchar.
     return new RedisPubSub({
       publisher: new Redis(redisUrl, options),
       subscriber: new Redis(redisUrl, options),

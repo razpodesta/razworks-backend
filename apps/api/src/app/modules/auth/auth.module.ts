@@ -1,12 +1,14 @@
-// apps/api/src/app/modules/auth/auth.module.ts
+// INICIO DEL ARCHIVO [apps/api/src/app/modules/auth/auth.module.ts]
 /**
  * @fileoverview Auth Module con Inyección Hexagonal
  * @module API/Auth
+ * @description
+ * Módulo responsable de la autenticación. Configura los controladores y servicios,
+ * y realiza el binding de los puertos del Core a la infraestructura de Drizzle.
  */
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-// Ahora estos imports funcionarán correctamente:
 import { UserRepositoryPort } from '@razworks/core';
 import { DrizzleUserRepository } from '@razworks/database';
 
@@ -15,7 +17,9 @@ import { DrizzleUserRepository } from '@razworks/database';
   controllers: [AuthController],
   providers: [
     AuthService,
-    // LA MAGIA: Cuando el Service pida el Puerto, Nest le da la Implementación Drizzle.
+    // BINDING HEXAGONAL:
+    // Cuando el AuthService solicite UserRepositoryPort (Core),
+    // NestJS inyectará DrizzleUserRepository (Database Infra).
     {
       provide: UserRepositoryPort,
       useClass: DrizzleUserRepository,
@@ -24,3 +28,4 @@ import { DrizzleUserRepository } from '@razworks/database';
   exports: [AuthService],
 })
 export class AuthModule {}
+// FIN DEL ARCHIVO [apps/api/src/app/modules/auth/auth.module.ts]

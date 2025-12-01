@@ -1,14 +1,22 @@
 /**
- * @fileoverview WhatsApp Engine Module (Production Optimized)
+ * @fileoverview WhatsApp Engine Module (Production Optimized v3 - Agentic)
  * @module WhatsApp/Root
  * @description
- * Topología final limpia. Integra el Córtex Global y el Sistema de Alertas.
+ * Topología final.
+ * - Conecta con Database (Audit/User).
+ * - Conecta con AI System (Agentic Coordinator).
+ * - Conecta con Toolbox (Herramientas concretas).
  */
 
 import { Module, Logger, OnModuleInit } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
-import { AiSystemModule } from '@razworks/ai'; // ✅ Córtex Global Correcto
+import { AiSystemModule } from '@razworks/ai';
 import { NotificationsModule } from '@razworks/notifications';
+import { DatabaseModule } from '@razworks/database';
+// ✅ Importación de Módulos de Herramientas
+import { ToolboxClientModule } from '@razworks/toolbox-client';
+import { ToolboxRazterModule } from '@razworks/toolbox-razter';
+import { ToolboxSharedModule } from '@razworks/toolbox-shared'; // Para el ToolRegistryService
 
 // Controllers
 import { WhatsAppController } from './whatsapp.controller';
@@ -22,6 +30,8 @@ import { WhatsAppClient } from '../services/whatsapp-client.service';
 import { OutboundHumanizerService } from '../services/outbound-humanizer.service';
 import { WhatsAppMediaService } from '../services/media-downloader.service';
 import { SecurityScannerService } from '../services/security-scanner.service';
+import { ConversationLoggerService } from '../services/conversation-logger.service';
+import { WhatsAppToolingService } from '../services/whatsapp-tooling.service'; // ✅ Nuevo Servicio
 
 // Workers
 import { OrchestratorWorker } from '../workers/orchestrator.worker';
@@ -32,17 +42,24 @@ import { SecurityWorker } from '../workers/security.worker';
   imports: [
     BullModule.registerFlowProducer({ name: 'whatsapp-flow' }),
     NotificationsModule,
-    AiSystemModule, // ✅ Importamos el módulo, no una clase inexistente
+    AiSystemModule,
+    DatabaseModule,
+    // ✅ Importamos los módulos de Toolbox para acceder a sus providers exportados
+    ToolboxSharedModule,
+    ToolboxClientModule,
+    ToolboxRazterModule
   ],
   controllers: [WhatsAppController],
   providers: [
-    // Lógica Core
+    // Logic & Core
     WhatsAppGatewayService,
     WhatsAppMapper,
     ConversationFlowService,
     PromptEngineeringService,
+    ConversationLoggerService,
+    WhatsAppToolingService, // ✅ Inicializador de Herramientas
 
-    // Infraestructura
+    // Infrastructure
     WhatsAppClient,
     WhatsAppMediaService,
     OutboundHumanizerService,
@@ -50,7 +67,7 @@ import { SecurityWorker } from '../workers/security.worker';
 
     // Workers
     OrchestratorWorker,
-    AudioWorker, // ✅ Aseguramos que este provider exista (ver archivo abajo)
+    AudioWorker,
     SecurityWorker,
   ],
   exports: [
@@ -62,6 +79,6 @@ export class WhatsAppEngineModule implements OnModuleInit {
   private readonly logger = new Logger(WhatsAppEngineModule.name);
 
   onModuleInit() {
-    this.logger.log('🚀 WhatsApp Engine [PROD]: Neural Link Established. Sentinels Active.');
+    this.logger.log('🚀 WhatsApp Engine: Agents Deployed & Tools Armed.');
   }
 }

@@ -1,2 +1,2 @@
-// libs/toolbox/razter/src/index.ts
-export * from './lib/media/file-converter.service';
+export * from './lib/tools/media-converter.tool';
+export * from './lib/toolbox-razter.module'; // ✅ Exportar Módulo

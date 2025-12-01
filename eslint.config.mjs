@@ -2,7 +2,7 @@
 /**
  * @fileoverview CONSTITUCIÓN MAESTRA DE LINTING (FLAT CONFIG)
  * @description Define las fronteras arquitectónicas y reglas globales.
- * @standard RAZWORKS-AUDIT-V3
+ * @standard RAZWORKS-AUDIT-V6 (Updated Permissions)
  */
 import nx from '@nx/eslint-plugin';
 
@@ -23,11 +23,18 @@ export default [
           allow: [],
           depConstraints: [
             {
-              // BACKEND GATEWAY
+              // BACKEND GATEWAY (API)
               sourceTag: 'scope:api',
               onlyDependOnLibsWithTags: [
-                'scope:core', 'scope:shared', 'scope:infra', 'scope:dtos',
-                'scope:logging', 'scope:whatsapp', 'scope:toolbox', 'scope:gamification'
+                'scope:core',
+                'scope:shared',
+                'scope:infra',
+                'scope:dtos',
+                'scope:logging',
+                'scope:whatsapp',
+                'scope:toolbox',
+                'scope:gamification', // ✅ PERMISO CONCEDIDO
+                'scope:notifications' // ✅ PERMISO CONCEDIDO
               ]
             },
             {
@@ -39,38 +46,42 @@ export default [
               ]
             },
             {
-              // MICROSERVICE: WHATSAPP (✅ PERMISOS AMPLIADOS)
+              // MICROSERVICE: WHATSAPP
               sourceTag: 'scope:whatsapp',
               onlyDependOnLibsWithTags: [
-                'scope:shared',
-                'scope:dtos',
-                'scope:logging',
-                'scope:infra',         // Acceso a Storage/Media
-                'scope:toolbox',       // Acceso a conversores
-                'scope:notifications', // ✅ Acceso a Alertas (Human Handoff)
-                'scope:ai'             // ✅ Acceso al Córtex
+                'scope:shared', 'scope:dtos', 'scope:logging',
+                'scope:infra', 'scope:toolbox', 'scope:notifications', 'type:ai'
               ]
             },
             {
               // GAMIFICATION ENGINE
               sourceTag: 'scope:gamification',
               onlyDependOnLibsWithTags: [
-                'scope:infra',
-                'scope:notifications',
-                'scope:shared',
-                'scope:dtos'
+                'scope:infra',         // Database Access
+                'scope:notifications', // Alert Dispatch
+                'scope:shared',        // Utils
+                'scope:dtos'           // Shared Types
               ]
             },
             {
-              // DOMAIN CORE
+              // NOTIFICATIONS ENGINE
+              sourceTag: 'scope:notifications',
+              onlyDependOnLibsWithTags: [
+                'scope:infra',  // Database Access
+                'scope:shared', // Utils
+                'scope:dtos'    // DTOs
+              ]
+            },
+            {
+              // DOMAIN CORE (THE KING)
               sourceTag: 'scope:core',
               onlyDependOnLibsWithTags: ['scope:shared', 'scope:dtos']
             },
             {
-              // INFRASTRUCTURE
+              // INFRASTRUCTURE (ADAPTERS)
               sourceTag: 'scope:infra',
               onlyDependOnLibsWithTags: [
-                'scope:core',
+                'scope:core',    // HEXAGONAL: Permite implementar Puertos
                 'scope:shared', 'scope:dtos', 'scope:logging', 'scope:infra'
               ]
             },
@@ -92,6 +103,7 @@ export default [
           ],
         },
       ],
+      // --- REGLAS DE ORO ---
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
@@ -104,3 +116,4 @@ export default [
     },
   },
 ];
+// FIN DEL ARCHIVO [eslint.config.mjs]

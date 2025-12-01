@@ -1,11 +1,24 @@
 {
   "name": "@razworks/notifications",
-  "version": "0.0.1",
-  "private": true,
+  "version": "1.0.0",
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/graphql": "^13.0.0",
+    "@nestjs/mercurius": "^13.0.0",
+    "graphql": "^16.8.1",
+    "graphql-redis-subscriptions": "^2.7.0",
+    "graphql-subscriptions": "^3.0.0",
+    "ioredis": "^5.4.0",
+    "mercurius": "^16.0.0",
     "tslib": "^2.3.0"
+  },
+  "peerDependencies": {
+    "@razworks/database": "workspace:*",
+    "@razworks/dtos": "workspace:*",
+    "@razworks/shared/utils": "workspace:*"
   }
 }

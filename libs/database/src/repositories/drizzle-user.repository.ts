@@ -1,87 +1,111 @@
 /**
- * @fileoverview Repositorio de Proyectos (Split-Table Transactional)
+ * @fileoverview Repositorio de Usuarios (Implementación Drizzle)
  * @module Infra/Database/Repositories
+ *
+ * @author Raz Podestá & LIA Legacy
+ * @copyright 2025 MetaShark Tech.
+ *
+ * @description
+ * Implementación concreta del puerto `UserRepositoryPort`.
+ * Maneja la tabla `profiles` que extiende la identidad de Supabase Auth.
+ * Implementa patrón UPSERT para garantizar sincronización.
  */
+
 import { Injectable, Logger } from '@nestjs/common';
-import { Project, ProjectRepositoryPort, AppError } from '@razworks/core';
+import { User, UserRepositoryPort, AppError } from '@razworks/core';
 import { Result } from '@razworks/shared/utils';
 import { db } from '../client';
-import { projectsTable, projectEmbeddingsTable } from '../schema/projects.table';
-import { eq, sql, cosineDistance, desc } from 'drizzle-orm';
+import { profilesTable } from '../schema/profiles.table';
+import { UserMapper } from '../mappers/user.mapper';
+import { eq } from 'drizzle-orm';
 
 @Injectable()
-export class DrizzleProjectRepository implements ProjectRepositoryPort {
-  private readonly logger = new Logger(DrizzleProjectRepository.name);
+export class DrizzleUserRepository implements UserRepositoryPort {
+  private readonly logger = new Logger(DrizzleUserRepository.name);
 
-  async create(project: Project): Promise<Result<void, Error>> {
-    this.logger.log(`Creating Project [${project.id}] with Transaction`);
-
+  /**
+   * Busca usuario por ID (PK).
+   */
+  async findById(id: string): Promise<Result<User | null, Error>> {
     try {
-      // INICIO TRANSACCIÓN ACID
-      await db.transaction(async (tx) => {
-        // 1. Insertar Metadatos (Light Table)
-        await tx.insert(projectsTable).values({
-          id: project.id,
-          ownerId: project.ownerId,
-          title: project.title,
-          slug: `${project.title.toLowerCase().replace(/\s+/g, '-')}-${project.id.slice(0, 4)}`, // Simple slug generation
-          status: project.status,
-          budgetCents: project.budgetCents,
-          currency: project.currency,
-          createdAt: project.createdAt,
-        });
-
-        // 2. Insertar Datos Pesados + Vector (Heavy Table)
-        if (project.embedding) {
-          await tx.insert(projectEmbeddingsTable).values({
-            projectId: project.id,
-            fullDescription: project.description,
-            embedding: project.embedding,
-          });
-        }
+      const result = await db.query.profilesTable.findFirst({
+        where: eq(profilesTable.id, id),
       });
 
-      return Result.ok(undefined);
+      if (!result) return Result.ok(null);
 
+      return Result.ok(UserMapper.toDomain(result));
     } catch (error) {
-      this.logger.error(`Transaction Failed for Project ${project.id}`, error);
+      this.logger.error(`Error finding user by ID [${id}]`, error);
       return Result.fail(new AppError.DatabaseError(String(error)).getError());
     }
   }
 
-  async searchBySimilarity(vector: number[], limit: number): Promise<Result<Project[], Error>> {
+  /**
+   * Busca usuario por Email (Índice único).
+   */
+  async findByEmail(email: string): Promise<Result<User | null, Error>> {
     try {
-      // Búsqueda vectorial usando cosineDistance
-      // Unimos (JOIN) las dos tablas para reconstruir la entidad completa
-      const similarity = sql<number>`1 - (${cosineDistance(projectEmbeddingsTable.embedding, vector)})`;
+      const result = await db.query.profilesTable.findFirst({
+        where: eq(profilesTable.email, email),
+      });
 
-      const results = await db
-        .select({
-          project: projectsTable,
-          details: projectEmbeddingsTable,
-          similarity: similarity,
-        })
-        .from(projectEmbeddingsTable)
-        .innerJoin(projectsTable, eq(projectsTable.id, projectEmbeddingsTable.projectId))
-        .orderBy(desc(similarity))
-        .limit(limit);
+      if (!result) return Result.ok(null);
 
-      // Mapeo a Dominio
-      const projects = results.map(row => new Project(
-        row.project.id,
-        row.project.ownerId,
-        row.project.title,
-        row.details.fullDescription || '',
-        row.project.status as any,
-        row.project.budgetCents,
-        row.project.currency,
-        row.project.createdAt || new Date()
-      ));
-
-      return Result.ok(projects);
-
+      return Result.ok(UserMapper.toDomain(result));
     } catch (error) {
-      this.logger.error(`Vector Search Failed`, error);
+      this.logger.error(`Error finding user by Email`, error);
+      return Result.fail(new AppError.DatabaseError(String(error)).getError());
+    }
+  }
+
+  /**
+   * Verifica existencia por Email (Optimizado: SELECT 1).
+   */
+  async exists(email: string): Promise<Result<boolean, Error>> {
+    try {
+      // Drizzle 'findFirst' con columnas seleccionadas es eficiente
+      const result = await db.query.profilesTable.findFirst({
+        where: eq(profilesTable.email, email),
+        columns: { id: true } // Solo traemos el ID para minimizar transferencia
+      });
+
+      return Result.ok(!!result);
+    } catch (error) {
+      return Result.fail(new AppError.DatabaseError(String(error)).getError());
+    }
+  }
+
+  /**
+   * Guarda o actualiza un usuario (Upsert).
+   * Vital para sincronizar con webhooks de Auth externos.
+   */
+  async save(user: User): Promise<Result<void, Error>> {
+    try {
+      await db.insert(profilesTable).values({
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        currentRealm: user.realm, // Mapeo de Entidad a Columna
+        avatarUrl: user.avatarUrl,
+        totalXp: Number(user.metadata['totalXp'] || 0),
+        reputationScore: Number(user.metadata['reputationScore'] || 100),
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: profilesTable.id,
+        set: {
+          fullName: user.fullName,
+          avatarUrl: user.avatarUrl,
+          currentRealm: user.realm,
+          updatedAt: new Date()
+        }
+      });
+
+      return Result.ok(undefined);
+    } catch (error) {
+      this.logger.error(`Error saving user [${user.id}]`, error);
       return Result.fail(new AppError.DatabaseError(String(error)).getError());
     }
   }

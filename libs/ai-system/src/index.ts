@@ -1,21 +1,29 @@
 /**
- * @fileoverview Public API del Sistema Cognitivo (Córtex)
+ * @fileoverview Public API del Sistema Cognitivo (Córtex v2)
  * @module Libs/AiSystem
  * @description
- * Punto de entrada único. Exporta puertos, fachadas y tipos de datos críticos.
+ * Punto de entrada único para consumidores externos (API, WhatsApp, Workers).
+ * Exporta solo lo necesario para interactuar con el cerebro del sistema.
  */
 
-// 1. Puertos y Contratos (Hexagonal)
+// 1. Contratos y Puertos
 export * from './lib/ports/ai-provider.port';
 
-// 2. Fachada de Memoria Neuronal
-export * from './lib/neural/neural-context.manager';
-
-// 3. Tipos de Datos Neuronales (✅ FIX: Exposición de NeuralMessage)
-export * from './lib/neural/neural.repository';
-
-// 4. Configuración
+// 2. Configuración
 export * from './lib/config/ai-env.config';
 
-// 5. El Módulo (NestJS Entry Point)
+// 3. Subsistema Neuronal (Memoria)
+export * from './lib/neural/neural-context.manager';
+export * from './lib/neural/neural.repository'; // Exportamos tipos como NeuralMessage
+
+// 4. Fachadas de Inteligencia (Servicios Principales)
+export * from './lib/facades/cognitive-core.service';
+export * from './lib/services/agentic-coordinator.service';
+
+// 5. Utilidades de Soporte
+export * from './lib/prompts/prompt.registry';
+export * from './lib/adapters/gemini-schema.mapper';
+export * from './lib/cache/semantic-cache.service';
+
+// 6. El Módulo (NestJS Entry Point)
 export * from './lib/ai-system.module';

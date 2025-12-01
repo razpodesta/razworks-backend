@@ -1,15 +1,35 @@
-// libs/core/src/ports/repositories/user.repository.port.ts
 /**
- * @fileoverview Puerto del Repositorio de Usuarios (Result Pattern)
+ * @fileoverview Puerto del Repositorio de Usuarios (Hexagonal)
  * @module Core/Ports
- * @description Contrato actualizado para retornar Result<User, Error>.
+ * @author Raz Podestá & LIA Legacy
+ * @description
+ * Contrato estricto para la persistencia de usuarios.
+ * Retorna Results para manejo de errores explícito (sin throw).
  */
+
 import { User } from '../../entities/user.entity';
 import { Result } from '@razworks/shared/utils';
+import { AppError } from '../../shared/app-error';
 
 export abstract class UserRepositoryPort {
-  abstract findById(id: string): Promise<Result<User | null, Error>>;
-  abstract findByEmail(email: string): Promise<Result<User | null, Error>>;
-  abstract save(user: User): Promise<Result<void, Error>>;
-  abstract exists(email: string): Promise<Result<boolean, Error>>;
+  /**
+   * Busca un usuario por su ID único.
+   */
+  abstract findById(id: string): Promise<Result<User | null, AppError.DatabaseError>>;
+
+  /**
+   * Busca un usuario por su email exacto.
+   */
+  abstract findByEmail(email: string): Promise<Result<User | null, AppError.DatabaseError>>;
+
+  /**
+   * Persiste un usuario (Creación o Actualización completa).
+   * Debe manejar la transaccionalidad interna.
+   */
+  abstract save(user: User): Promise<Result<void, AppError.DatabaseError>>;
+
+  /**
+   * Verificación ligera de existencia.
+   */
+  abstract exists(email: string): Promise<Result<boolean, AppError.DatabaseError>>;
 }

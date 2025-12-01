@@ -1,2 +1,2 @@
-// libs/toolbox/client/src/index.ts
-export * from './lib/finance/estimator.tool';
+export * from './lib/tools/budget-estimator.tool';
+export * from './lib/toolbox-client.module'; // ✅ Exportar Módulo

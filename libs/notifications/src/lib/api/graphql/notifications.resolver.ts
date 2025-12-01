@@ -1,5 +1,5 @@
 /**
- * @fileoverview Resolver GraphQL para Notificaciones
+ * @fileoverview Resolver de Notificaciones (Real-time & Operations)
  * @module Notifications/API
  */
 import { Resolver, Query, Mutation, Subscription, Args } from '@nestjs/graphql';
@@ -19,6 +19,7 @@ export class NotificationsResolver {
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
   ) {}
 
+  // --- PULL: Obtener Historial ---
   @Query(() => NotificationFeed)
   @UseGuards(GqlAuthGuard)
   async myNotifications(
@@ -29,6 +30,7 @@ export class NotificationsResolver {
     return this.service.getUserFeed(user.id, limit, offset);
   }
 
+  // --- COMMAND: Marcar como Leído ---
   @Mutation(() => Boolean)
   @UseGuards(GqlAuthGuard)
   async markNotificationsAsRead(
@@ -39,23 +41,22 @@ export class NotificationsResolver {
     return true;
   }
 
-  // 🔥 SUSCRIPCIÓN EN TIEMPO REAL
+  // --- PUSH: Suscripción en Tiempo Real ---
   @Subscription(() => NotificationItem, {
-    filter: (payload, variables, context) => {
-      // El payload contiene el evento disparado por Redis
-      const notification = payload[NOTIFICATION_EVENT];
-
-      // Security Check: El ID del evento debe coincidir con el ID del suscriptor
-      // Nota: En subscriptions, el user suele venir en connectionParams,
-      // aquí usamos el argumento explícito por simplicidad arquitectónica.
-      return notification.userId === variables.userId;
+    filter: (payload, variables) => {
+      // 🛡️ FIREWALL DE EVENTOS:
+      // El evento solo se envía si el ID del destinatario en el payload
+      // coincide con el ID solicitado en la suscripción.
+      // Nota: En producción real, 'variables.userId' debería validarse contra el token de conexión WebSocket.
+      return payload[NOTIFICATION_EVENT].userId === variables.userId;
     },
     resolve: (payload) => {
-      // Transformación final antes de enviar al cliente
+      // Extraemos el objeto limpio para el cliente
       return payload[NOTIFICATION_EVENT];
     }
   })
   notificationStream(@Args('userId') userId: string) {
+    // Retorna un iterador asíncrono conectado al bus de Redis
     return this.pubSub.asyncIterator(NOTIFICATION_EVENT);
   }
 }

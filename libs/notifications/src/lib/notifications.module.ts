@@ -11,18 +11,18 @@ import { GqlAuthGuard } from './api/guards/gql-auth.guard';
 
 @Module({
   imports: [
-    PubSubModule // Inyección del motor de tiempo real
+    PubSubModule // Inyecta el motor de tiempo real
   ],
   controllers: [
-    NotificationsController // Mantenemos REST para compatibilidad con webhooks externos
+    NotificationsController // Mantiene compatibilidad REST
   ],
   providers: [
     NotificationsService,
-    NotificationsResolver, // Habilitamos GraphQL
+    NotificationsResolver, // Habilita GraphQL
     GqlAuthGuard
   ],
   exports: [
-    NotificationsService // Exportamos el servicio para que otros módulos (WhatsApp, Gamification) lo usen
+    NotificationsService // Exportado para uso interno (WhatsApp/Gamification)
   ],
 })
 export class NotificationsModule {}

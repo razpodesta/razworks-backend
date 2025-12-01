@@ -1,5 +1,5 @@
 /**
- * @fileoverview Schema Code-First para GraphQL
+ * @fileoverview Modelo GraphQL de Notificaciones
  * @module Notifications/API
  */
 import { Field, ID, ObjectType, Int, registerEnumType } from '@nestjs/graphql';
@@ -10,7 +10,6 @@ export enum NotificationStatus {
   ARCHIVED = 'ARCHIVED',
 }
 
-// Registro del Enum para que GraphQL lo entienda
 registerEnumType(NotificationStatus, { name: 'NotificationStatus' });
 
 @ObjectType()
@@ -18,13 +17,13 @@ export class NotificationItem {
   @Field(() => ID)
   id: string;
 
-  @Field(() => String, { description: 'Código de acción legible (ej: PROJ_CREATED)' })
+  @Field(() => String, { description: 'Código de acción semántico (ej: PROJ_CREATED)' })
   action: string;
 
   @Field(() => NotificationStatus)
   status: NotificationStatus;
 
-  @Field(() => String, { description: 'JSON stringified con datos dinámicos' })
+  @Field(() => String, { description: 'Metadata serializada en JSON para hidratación en UI' })
   metadata: string;
 
   @Field(() => Date)
@@ -33,7 +32,7 @@ export class NotificationItem {
 
 @ObjectType()
 export class NotificationFeed {
-  @Field(() => Int)
+  @Field(() => Int, { description: 'Contador en tiempo real de no leídas' })
   unreadCount: number;
 
   @Field(() => [NotificationItem])
