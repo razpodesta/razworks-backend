@@ -1,29 +1,26 @@
-// libs/whatsapp-engine/src/workers/audio.worker.ts
 /**
- * @fileoverview Audio Processing Unit
+ * @fileoverview Audio Processing Worker (The Ear)
  * @module WhatsApp/Workers
  * @description
- * Ingesta audio y utiliza el Toolbox para conversión y la IA para transcripción.
- * REFACTOR: Integración con @razworks/toolbox-razter.
+ * Descarga el audio de Meta, y usa el Córtex (Multimodal) para transcribirlo.
  */
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
-import { aiAdapter } from '@razworks/ai';
-import { FileConverterTool } from '@razworks/toolbox-razter';
+import { AiProviderPort } from '@razworks/ai';
+import { WhatsAppMediaService } from '../services/media-downloader.service';
 
-interface AudioPayload {
-  mediaUrl: string;
+export interface AudioPayload {
+  mediaUrl: string; // ID de media de WhatsApp
   mimeType: string;
   traceId: string;
 }
 
-interface AudioResult {
+export interface AudioResult {
   text: string;
   meta: {
-    duration: number;
+    source: string;
     confidence: number;
-    format: string;
   };
 }
 
@@ -31,44 +28,55 @@ interface AudioResult {
 export class AudioWorker extends WorkerHost {
   private readonly logger = new Logger(AudioWorker.name);
 
+  constructor(
+    private readonly mediaService: WhatsAppMediaService,
+    private readonly aiProvider: AiProviderPort // ✅ Inyección del Puerto Agnóstico
+  ) {
+    super();
+  }
+
   async process(job: Job<AudioPayload>): Promise<AudioResult> {
     const { mediaUrl, mimeType, traceId } = job.data;
-    this.logger.log(`🎧 Processing Audio | Trace: ${traceId}`);
+    this.logger.log(`🎧 Processing Audio | Trace: ${traceId} | Media: ${mediaUrl}`);
 
     try {
-      // 1. Normalización de Audio (Usando Toolbox)
-      // Asumimos nivel 'BARRACUDA' para permitir proceso interno
-      const conversion = await FileConverterTool.convert({
-        fileId: mediaUrl, // Usamos la URL como ID temporal
-        targetFormat: 'mp3',
-        razterTier: 'BARRACUDA'
-      });
-
-      if (conversion.status !== 'SUCCESS' || !conversion.url) {
-        throw new Error(`Audio Conversion Failed: ${conversion.message}`);
+      // 1. Descargar Binario (Buffer)
+      const downloadResult = await this.mediaService.downloadMedia(mediaUrl);
+      if (downloadResult.isFailure) {
+        throw downloadResult.getError();
       }
 
-      // 2. Transcripción (Simulada/Whisper - Aquí usaríamos conversion.url real)
-      // Por ahora, simulamos que la IA escucha el archivo procesado
-      const rawTranscript = "Hola quiero cotizar un sistema de gestión en la nube.";
+      const { buffer, mimeType: finalMime } = downloadResult.getValue();
 
-      // 3. Corrección Cognitiva (AI Adapter)
-      const prompt = `Correct this transcript for technical accuracy: "${rawTranscript}"`;
-      const polishedText = await aiAdapter.generateText(prompt);
+      // 2. Inferencia Multimodal (Audio -> Texto)
+      // Usamos el modelo Gemini Flash (via Port) que es nativamente multimodal.
+      const transcriptionResult = await this.aiProvider.generateMultimodal(
+        'Transcribe exactly what is said in this audio. If it is silent or unintelligible, say [SILENCE].',
+        {
+          data: buffer,
+          mimeType: finalMime || mimeType
+        }
+      );
+
+      if (transcriptionResult.isFailure) {
+        throw transcriptionResult.getError();
+      }
+
+      const text = transcriptionResult.getValue();
+      this.logger.debug(`🗣️ Transcript: "${text.substring(0, 50)}..."`);
 
       return {
-        text: polishedText,
+        text,
         meta: {
-          duration: 15,
-          confidence: 0.99,
-          format: 'mp3_normalized'
+          source: 'gemini-multimodal',
+          confidence: 0.9 // Estimado
         }
       };
 
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      this.logger.error(`❌ Audio Pipeline Failed: ${msg}`, { traceId });
-      throw error;
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`❌ Audio Processing Failed: ${err.message}`, err.stack);
+      throw err;
     }
   }
 }

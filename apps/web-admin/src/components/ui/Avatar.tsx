@@ -1,16 +1,17 @@
-// RUTA: apps/web-admin/src/components/ui/Avatar.tsx
-// VERSIÓN: 1.0 - Componente de Identidad Dinámica (Imagen/Video)
+// INICIO DEL ARCHIVO [apps/web-admin/src/components/ui/Avatar.tsx]
+/**
+ * @fileoverview Componente Avatar Soberano
+ * @module UI/Avatar
+ * @description Internalizado para independencia de despliegue.
+ */
+'use client';
 
 import Image from 'next/image';
 import { cva, type VariantProps } from 'class-variance-authority';
-
-// ===================================================================================
-// DEFINICIÓN DE ESTILOS CON CVA (CLASS-VARIANCE-AUTHORITY)
-// Esto permite crear variantes de estilo de una manera organizada y escalable.
-// ===================================================================================
+import { cn } from '@/lib/utils'; // Importación local usando alias @/
 
 const avatarVariants = cva(
-  'relative inline-flex items-center justify-center overflow-hidden',
+  'relative inline-flex items-center justify-center overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700',
   {
     variants: {
       shape: {
@@ -18,10 +19,10 @@ const avatarVariants = cva(
         square: 'rounded-xl',
       },
       size: {
-        sm: 'h-10 w-10',
-        md: 'h-16 w-16',
-        lg: 'h-24 w-24',
-        xl: 'h-32 w-32',
+        sm: 'h-8 w-8',
+        md: 'h-12 w-12',
+        lg: 'h-16 w-16',
+        xl: 'h-24 w-24',
       },
     },
     defaultVariants: {
@@ -31,21 +32,12 @@ const avatarVariants = cva(
   }
 );
 
-// ===================================================================================
-// DEFINICIÓN DE PROPS DEL COMPONENTE
-// ===================================================================================
-
-// Heredamos las variantes de CVA para tener autocompletado de `shape` y `size`.
 export interface AvatarProps extends VariantProps<typeof avatarVariants> {
-  src?: string;       // Fuente para la imagen estática (opcional)
-  videoSrc?: string;  // Fuente para el video animado (opcional, tiene prioridad)
-  alt: string;        // Texto alternativo (obligatorio por accesibilidad)
-  className?: string; // Para clases de estilo personalizadas
+  src?: string;
+  videoSrc?: string;
+  alt: string;
+  className?: string;
 }
-
-// ===================================================================================
-// COMPONENTE AVATAR
-// ===================================================================================
 
 export function Avatar({
   src,
@@ -55,27 +47,23 @@ export function Avatar({
   size,
   className,
 }: AvatarProps) {
-  // Prioridad de Medio Dinámico: Si existe `videoSrc`, se renderiza el video.
   const hasVideo = !!videoSrc;
 
   return (
-    <div className={avatarVariants({ shape, size, className })}>
+    <div className={cn(avatarVariants({ shape, size, className }))}>
       {hasVideo ? (
-        // --- Renderizado de Video Animado ---
         <video
-          key={videoSrc} // `key` asegura que el video se recargue si la fuente cambia
+          key={videoSrc}
           autoPlay
           loop
-          muted         // `muted` es ESENCIAL para que `autoPlay` funcione en la mayoría de los navegadores
-          playsInline   // `playsInline` es crucial para la reproducción en iOS
+          muted
+          playsInline
           className="h-full w-full object-cover"
         >
           <source src={videoSrc} type="video/mp4" />
-          {/* Puedes añadir más <source> para otros formatos como webm u ogg */}
         </video>
       ) : (
-        // --- Renderizado de Imagen Estática (con optimización de Next.js) ---
-        src && (
+        src ? (
           <Image
             src={src}
             alt={alt}
@@ -83,8 +71,13 @@ export function Avatar({
             sizes="(max-width: 768px) 10vw, (max-width: 1200px) 5vw, 5vw"
             className="object-cover"
           />
+        ) : (
+          <span className="text-zinc-400 font-bold text-[10px] uppercase tracking-tighter">
+            {alt ? alt.substring(0, 2) : 'NA'}
+          </span>
         )
       )}
     </div>
   );
 }
+// FIN DEL ARCHIVO [apps/web-admin/src/components/ui/Avatar.tsx]

@@ -19,7 +19,7 @@
       "@razworks/dtos": ["libs/shared/dtos/src/index.ts"],
       "@razworks/ai": ["libs/ai-system/src/index.ts"],
       "@razworks/database": ["libs/database/src/index.ts"],
-      "@razworks/ui": ["libs/ui-kit/src/index.ts"],
+      "@razworks/notifications": ["libs/notifications/src/index.ts"],
       "@razworks/testing": ["libs/testing/src/index.ts"],
       "@razworks/logging": ["libs/logging/src/index.ts"],
       "@razworks/whatsapp-engine": ["libs/whatsapp-engine/src/index.ts"],
@@ -27,7 +27,8 @@
       "@razworks/security": ["libs/security/src/index.ts"],
       "@razworks/toolbox-shared": ["libs/toolbox/shared/src/index.ts"],
       "@razworks/toolbox-client": ["libs/toolbox/client/src/index.ts"],
-      "@razworks/toolbox-razter": ["libs/toolbox/razter/src/index.ts"]
+      "@razworks/toolbox-razter": ["libs/toolbox/razter/src/index.ts"],
+      "@razworks/gamification": ["libs/gamification-engine/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

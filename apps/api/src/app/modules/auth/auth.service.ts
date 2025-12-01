@@ -1,19 +1,15 @@
 // apps/api/src/app/modules/auth/auth.service.ts
 /**
- * @fileoverview Servicio de Autenticación (Business Logic)
+ * @fileoverview Servicio de Autenticación (Refactorizado con Result Pattern)
  * @module API/Auth
- * @author Raz Podestá & LIA Legacy
  * @description
- * Maneja la dualidad de identidad:
- * 1. Supabase Auth (Identity Provider)
- * 2. Drizzle ORM (Perfil de Negocio)
+ * Orquestador blindado. Transforma errores de dominio en respuestas controladas.
  */
 import { Injectable, InternalServerErrorException, BadRequestException, Logger, OnModuleInit } from '@nestjs/common';
 import { RegisterDto } from '@razworks/dtos';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { db, profilesTable } from '@razworks/database';
+import { UserRepositoryPort, User } from '@razworks/core';
 
-// Definimos interfaz de respuesta para no usar 'any' ni objetos anónimos
 export interface RegistrationResult {
   success: boolean;
   userId: string;
@@ -25,36 +21,47 @@ export class AuthService implements OnModuleInit {
   private readonly logger = new Logger(AuthService.name);
   private supabase: SupabaseClient;
 
-  constructor() {
-    // Validación de entorno (Fail Fast)
+  constructor(
+    private readonly userRepository: UserRepositoryPort
+  ) {
     const url = process.env['SUPABASE_URL'];
     const key = process.env['SUPABASE_KEY'];
 
     if (!url || !key) {
+      // Este es un error de configuración, aquí sí es válido lanzar excepción para detener el boot
       throw new Error('FATAL: Configuración de Supabase faltante en AuthService');
     }
-
     this.supabase = createClient(url, key);
   }
 
   onModuleInit() {
-    this.logger.log('🔐 AuthService Initialized connected to Identity Provider');
+    this.logger.log('🔐 AuthService Initialized (Result Pattern V2)');
   }
 
-  /**
-   * Registra un nuevo usuario en el ecosistema (Identity + Profile).
-   * @param dto Datos validados por Zod
-   */
   async register(dto: RegisterDto): Promise<RegistrationResult> {
-    this.logger.log(`Intentando registrar usuario: ${dto.email} [Role: ${dto.role}]`);
+    this.logger.log(`Intentando registrar usuario: ${dto.email}`);
 
-    // 1. Crear usuario en Supabase Auth (Identity Provider)
+    // 1. Validación de Dominio (Usando Result Pattern)
+    const existsOrError = await this.userRepository.exists(dto.email);
+
+    if (existsOrError.isFailure) {
+      // Fallo de infraestructura (DB caída)
+      throw new InternalServerErrorException(existsOrError.getError().message);
+    }
+
+    if (existsOrError.getValue()) {
+      // Regla de Negocio
+      throw new BadRequestException('El usuario ya existe en el sistema.');
+    }
+
+    // 2. Crear identidad en Provider (Supabase Auth - API Externa)
+    // Nota: Supabase Client aún usa throw/return object, lo envolvemos
     const { data: authData, error: authError } = await this.supabase.auth.signUp({
       email: dto.email,
       password: dto.password,
       options: {
         data: {
-          full_name: dto.fullName, // Metadata en JWT
+          full_name: dto.fullName,
           role: dto.role
         }
       }
@@ -66,43 +73,38 @@ export class AuthService implements OnModuleInit {
     }
 
     if (!authData.user || !authData.user.id) {
-      this.logger.error('Identity Provider retornó éxito pero no devolvió User ID');
       throw new InternalServerErrorException('Error crítico en creación de identidad');
     }
 
     const userId = authData.user.id;
 
-    // 2. Crear perfil público en nuestra DB (Drizzle - Core Domain)
-    try {
-      this.logger.debug(`Creando perfil de dominio para ID: ${userId}`);
+    // 3. Crear Entidad de Dominio
+    const newUser = new User(
+      userId,
+      dto.email,
+      dto.fullName,
+      dto.role,
+      'THE_SCRIPT', // Default Realm
+      new Date()
+    );
 
-      await db.insert(profilesTable).values({
-        id: userId, // Vinculación FK Estricta
-        email: dto.email,
-        fullName: dto.fullName,
-        role: dto.role,
-        // 'createdAt' y 'updatedAt' se manejan por default en DB
-      });
+    // 4. Persistir mediante Puerto (Result Pattern)
+    const saveResult = await this.userRepository.save(newUser);
 
-      this.logger.log(`✅ Usuario registrado exitosamente: ${userId}`);
-
-      return {
-        success: true,
-        userId: userId,
-        message: 'Usuario registrado exitosamente en RazWorks',
-      };
-
-    } catch (error: unknown) {
-      // Manejo de errores tipado (Zero-Any Policy)
-      const err = error instanceof Error ? error : new Error(String(error));
-
-      this.logger.error(`❌ Fallo al crear perfil de dominio para ${userId}`, err.stack);
-
-      // NOTA: Aquí idealmente haríamos un rollback borrando el usuario de Auth,
-      // pero Supabase Auth Admin API requiere service_role key.
-      // Por ahora, lanzamos error para que el cliente lo sepa.
-
-      throw new InternalServerErrorException('Identidad creada, pero falló la creación del perfil. Contacte soporte.');
+    if (saveResult.isFailure) {
+      // Si falla el guardado local, tenemos un estado inconsistente (Auth sí, DB no).
+      // En un sistema avanzado, aquí encolaríamos una tarea de compensación (Rollback).
+      const error = saveResult.getError();
+      this.logger.error(`❌ Fallo al guardar perfil de dominio para ${userId}: ${error.message}`);
+      throw new InternalServerErrorException('Identidad creada, pero falló la persistencia del perfil local.');
     }
+
+    this.logger.log(`✅ Usuario registrado exitosamente: ${userId}`);
+
+    return {
+      success: true,
+      userId: userId,
+      message: 'Usuario registrado exitosamente en RazWorks',
+    };
   }
 }

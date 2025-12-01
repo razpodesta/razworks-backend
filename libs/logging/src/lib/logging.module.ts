@@ -1,67 +1,70 @@
-import { Module } from '@nestjs/common';
+/**
+ * @fileoverview Módulo de Logging (Fortress Edition)
+ * @description Configuración centralizada de Pino con soporte Multi-Stream.
+ */
+import { Module, DynamicModule } from '@nestjs/common';
 import { LoggerModule as PinoLoggerModule, Params } from 'nestjs-pino';
 import { IncomingMessage } from 'node:http';
 import { PerformanceInterceptor } from './performance.interceptor';
+import pino from 'pino';
 
-// FIX: Acceso seguro a variable de entorno con índice string
 const isProduction = process.env['NODE_ENV'] === 'production';
 
-// Definimos la interfaz del Request extendida por Pino
 interface PinoRequest extends IncomingMessage {
   id: string | number;
 }
 
 @Module({
-  imports: [
-    PinoLoggerModule.forRootAsync({
-      useFactory: (): Params => {
-        // SAFETY: Definimos la configuración base.
-        // TypeScript estricto se queja de 'transport' en la interfaz Params de nestjs-pino actual.
-        // Usamos un objeto intermedio tipado como Record<string, unknown> para construir la config
-        // y luego lo asignamos, lo cual es seguro en runtime porque pino lo soporta.
-
-        const pinoConfig: Record<string, unknown> = {
-          // Seguridad: Sanitización de datos sensibles
-          redact: ['req.headers.authorization', 'req.body.password', 'req.body.creditCard'],
-
-          // Nivel de log
-          level: isProduction ? 'info' : 'debug',
-
-          // Serializadores tipados
-          serializers: {
-            req: (req: unknown) => {
-              const r = req as PinoRequest;
-              return {
-                id: r.id,
-                method: r.method,
-                url: r.url,
-              };
-            },
-          },
-        };
-
-        // Inyección condicional del transporte (pino-pretty)
-        if (!isProduction) {
-          pinoConfig['transport'] = {
-            target: 'pino-pretty',
-            options: {
-              singleLine: true,
-              colorize: true,
-              translateTime: 'SYS:standard',
-              ignore: 'pid,hostname',
-            },
-          };
-        }
-
-        return {
-          // SAFETY: Casting final a la interfaz esperada por el módulo.
-          // Esto evita el error TS2353 sin usar 'any'.
-          pinoHttp: pinoConfig as Params['pinoHttp'],
-        };
-      },
-    }),
-  ],
   providers: [PerformanceInterceptor],
   exports: [PinoLoggerModule, PerformanceInterceptor],
 })
-export class LoggingModule {}
+export class LoggingModule {
+  /**
+   * Configuración asíncrona que permite inyectar streams personalizados.
+   * @param extraStream Stream opcional para persistencia (ej: AuditDbStream)
+   */
+  static forRoot(extraStream?: pino.DestinationStream): DynamicModule {
+    return {
+      module: LoggingModule,
+      imports: [
+        PinoLoggerModule.forRootAsync({
+          useFactory: (): Params => {
+            // 1. Configuración Base
+            const baseConfig = {
+              redact: ['req.headers.authorization', 'req.body.password', 'req.body.creditCard'],
+              level: isProduction ? 'info' : 'debug',
+              serializers: {
+                req: (req: unknown) => {
+                  const r = req as PinoRequest;
+                  return { id: r.id, method: r.method, url: r.url };
+                },
+              },
+            };
+
+            // 2. Configuración de Streams (Multi-Destination)
+            const streams: pino.StreamEntry[] = [
+              // Siempre escribimos a stdout (para Render/Vercel logs nativos)
+              { stream: process.stdout },
+            ];
+
+            // Si nos pasan el stream de auditoría, lo agregamos
+            if (extraStream) {
+              streams.push({ stream: extraStream });
+            }
+
+            // Nota: En producción real, 'pino-pretty' no se recomienda por performance,
+            // pero si se usa, debe ser un stream separado. Aquí usamos multistream puro.
+
+            return {
+              pinoHttp: {
+                ...baseConfig,
+                // @ts-expect-error - multistream es compatible aunque los tipos de nestjs-pino sean estrictos
+                stream: pino.multistream(streams),
+              },
+            };
+          },
+        }),
+      ],
+    };
+  }
+}

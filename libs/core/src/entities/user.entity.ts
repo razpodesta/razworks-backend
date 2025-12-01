@@ -1,12 +1,19 @@
 // libs/core/src/entities/user.entity.ts
 /**
- * @fileoverview Entidad de Usuario (Dominio Puro)
+ * @fileoverview Entidad de Usuario (Dominio Puro - Updated)
  * @module Core/Entities
- * @description Modelo agnóstico de infraestructura. Incluye lógica de Tiers para Gamificación.
+ * @description Modelo agnóstico de infraestructura. Alineado con GAMIFICATION_CODEX.
  */
 
 export type UserRole = 'CLIENT' | 'FREELANCER' | 'ADMIN';
-export type RazterTier = 'PLANKTON' | 'BARRACUDA' | 'TIGER_SHARK' | 'MEGALODON';
+
+// CAMBIO CRÍTICO: De Peces a Reinos
+export type RazterRealm =
+  | 'THE_SCRIPT'
+  | 'THE_COMPILER'
+  | 'THE_KERNEL'
+  | 'THE_NETWORK'
+  | 'THE_SOURCE';
 
 export class User {
   constructor(
@@ -14,37 +21,31 @@ export class User {
     public readonly email: string,
     public readonly fullName: string,
     public readonly role: UserRole,
-    public readonly tier: RazterTier = 'PLANKTON', // Default para nuevos usuarios
+    public readonly realm: RazterRealm = 'THE_SCRIPT', // Nuevo Default
     public readonly createdAt: Date,
     public readonly avatarUrl?: string,
     public readonly metadata: Record<string, unknown> = {}
   ) {}
 
-  /**
-   * Verifica si es Administrador del sistema.
-   */
   public isAdmin(): boolean {
     return this.role === 'ADMIN';
   }
 
   /**
-   * Verifica si el usuario tiene nivel suficiente para acceder a una feature.
-   * @param requiredTier Nivel mínimo requerido
+   * Verifica acceso basado en la jerarquía de Reinos.
    */
-  public hasAccessToTier(requiredTier: RazterTier): boolean {
-    const levels: Record<RazterTier, number> = {
-      'PLANKTON': 1,
-      'BARRACUDA': 2,
-      'TIGER_SHARK': 3,
-      'MEGALODON': 4
+  public hasAccessToRealm(requiredRealm: RazterRealm): boolean {
+    const hierarchy: Record<RazterRealm, number> = {
+      'THE_SCRIPT': 1,
+      'THE_COMPILER': 2,
+      'THE_KERNEL': 3,
+      'THE_NETWORK': 4,
+      'THE_SOURCE': 5
     };
 
-    return levels[this.tier] >= levels[requiredTier];
+    return hierarchy[this.realm] >= hierarchy[requiredRealm];
   }
 
-  /**
-   * Retorna el nombre de visualización seguro.
-   */
   public get displayName(): string {
     return this.fullName || this.email.split('@')[0];
   }

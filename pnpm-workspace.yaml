@@ -1,12 +1,14 @@
 packages:
-  - 'apps/*'
-  - 'libs/**'
+  - apps/*
+  - libs/**
 
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@parcel/watcher'
+  - '@swc/core'
   - core-js
   - esbuild
+  - msgpackr-extract
   - nx
   - sharp
   - unrs-resolver

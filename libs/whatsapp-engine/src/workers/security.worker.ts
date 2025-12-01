@@ -1,19 +1,26 @@
-// libs/whatsapp-engine/src/workers/security.worker.ts
 /**
- * @fileoverview Security Worker (PII Redaction & Threat Detection)
+ * @fileoverview SECURITY WORKER (Orchestrator)
  * @module WhatsApp/Workers
  * @description
- * Analiza el texto entrante en busca de:
- * 1. PII (Personally Identifiable Information): Emails, Teléfonos, Tarjetas.
- * 2. Toxicidad/Prompt Injection: Intentos de manipular a la IA.
+ * Guardián de Integridad.
+ * - Consume trabajos de la cola de seguridad.
+ * - Delega el análisis al SecurityScannerService.
+ * - Decide si el flujo continúa o se aborta (Fail Fast).
+ *
+ * REFACTORIZACIÓN ELITE:
+ * 1. Dependency Injection: Usa SecurityScannerService.
+ * 2. Result Pattern: Manejo de errores funcional.
+ * 3. Traceability: Logs estructurados con TraceID.
  */
+
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
+import { SecurityScannerService } from '../services/security-scanner.service';
 
 interface SecurityPayload {
   text: string;
-  mediaUrl?: string;
+  mediaUrl?: string; // Para futuro análisis de malware en archivos
   traceId: string;
 }
 
@@ -27,57 +34,62 @@ interface SecurityResult {
 export class SecurityWorker extends WorkerHost {
   private readonly logger = new Logger(SecurityWorker.name);
 
+  constructor(
+    private readonly scanner: SecurityScannerService // ✅ Inyección del Motor Heurístico
+  ) {
+    super();
+  }
+
   async process(job: Job<SecurityPayload>): Promise<SecurityResult> {
     const { text, traceId } = job.data;
-    this.logger.debug(`🛡️ Scanning payload | Trace: ${traceId}`);
+
+    // Nivel Debug para no saturar logs en producción
+    this.logger.debug(`🛡️ Security Check Initiated | Trace: ${traceId}`);
 
     try {
-      // 1. Detección de Patrones PII (Regex)
-      const sanitized = this.redactPII(text);
+      // 1. Delegación de Análisis al Servicio
+      const scanResult = this.scanner.scan(text);
 
-      // 2. Detección de Prompt Injection (Heurística simple)
-      // En producción, esto podría llamar a un modelo clasificador pequeño (BERT).
-      if (this.isPromptInjection(sanitized)) {
-        this.logger.warn(`🚨 Threat Detected: Prompt Injection | Trace: ${traceId}`);
+      if (scanResult.isFailure) {
+        // Si el motor de seguridad falla, aplicamos el principio "Fail Closed"
+        // (Bloquear por defecto ante error interno)
+        const error = scanResult.getError();
+        this.logger.error(`🔥 Scanner Malfunction: ${error.message} | Trace: ${traceId}`);
+        throw error; // BullMQ reintentará, si persiste fallará el flow padre.
+      }
+
+      const diagnosis = scanResult.getValue();
+
+      // 2. Decisión y Logging basado en Nivel de Amenaza
+      if (!diagnosis.isSafe) {
+        this.logger.warn(
+          `🚫 THREAT BLOCKED [${diagnosis.threatLevel}]: ${diagnosis.reason} | Trace: ${traceId}`
+        );
+
         return {
           safe: false,
-          sanitizedText: '[BLOCKED]',
-          reason: 'PROMPT_INJECTION_DETECTED'
+          sanitizedText: '[BLOCKED_PAYLOAD]',
+          reason: `Security Policy Violation: ${diagnosis.reason}`
         };
+      }
+
+      // 3. Éxito: Retorno del texto limpio (Redacted)
+      // Si hubo PII, se loguea como info, pero no se bloquea el flujo.
+      if (diagnosis.sanitizedText !== text) {
+        this.logger.log(`⚠️ PII Redacted from payload | Trace: ${traceId}`);
       }
 
       return {
         safe: true,
-        sanitizedText: sanitized
+        sanitizedText: diagnosis.sanitizedText,
+        reason: 'CLEAN'
       };
 
-    } catch (error) {
-      this.logger.error(`Security Scan Failed`, error);
-      // En caso de fallo del scanner, cerramos por seguridad (Fail Closed)
-      return { safe: false, sanitizedText: '', reason: 'SCANNER_ERROR' };
+    } catch (error: unknown) {
+      // Captura de errores no controlados (Bug en el Worker)
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error(`❌ Security Worker Critical Failure: ${err.message}`, err.stack);
+      throw err;
     }
-  }
-
-  private redactPII(input: string): string {
-    let output = input;
-    // Email Regex
-    output = output.replace(/\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b/g, '[EMAIL_REDACTED]');
-    // Phone Regex (Genérico Internacional)
-    output = output.replace(/\b\+?[\d\s-]{10,15}\b/g, '[PHONE_REDACTED]');
-    // Credit Card (Luhn check simplificado visual)
-    output = output.replace(/\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b/g, '[CARD_REDACTED]');
-
-    return output;
-  }
-
-  private isPromptInjection(text: string): boolean {
-    const patterns = [
-      'ignore previous instructions',
-      'system override',
-      'you are now DAN',
-      'act as an unbound ai'
-    ];
-    const lower = text.toLowerCase();
-    return patterns.some(p => lower.includes(p));
   }
 }

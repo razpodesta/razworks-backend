@@ -1,45 +1,34 @@
-// RUTA: apps/web-admin/src/components/ui/Flag.tsx
-// VERSIÓN: 1.0 - Componente de Bandera Soberano y de Alto Rendimiento.
-// DESCRIPCIÓN: Este componente reemplaza la dependencia externa 'react-flag-kit'.
-//              Renderiza una bandera SVG optimizada desde una CDN, utilizando el
-//              componente 'next/image' para garantizar el mejor rendimiento y
-//              evitar 'layout shifts'. Es una pieza de UI de élite, autocontenida
-//              y sin dependencias externas.
-
+// INICIO DEL ARCHIVO [apps/web-admin/src/components/ui/Flag.tsx]
+/**
+ * @fileoverview Componente de Bandera (CDN Based)
+ * @module UI/Flag
+ */
 'use client';
 
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
-type FlagProps = {
-  /** El código de país de 2 letras en formato ISO 3166-1 alpha-2 (ej. 'US', 'BR'). */
-  countryCode: string;
-  /** Clases de Tailwind CSS para aplicar estilo personalizado, principalmente tamaño (ej. 'h-5 w-5'). */
+export interface FlagProps {
+  countryCode: string; // ISO 3166-1 alpha-2 (US, BR, ES)
   className?: string;
-};
+}
 
-/**
- * Muestra la bandera de un país utilizando un CDN rápido para SVGs.
- */
-export function Flag({ countryCode, className = 'h-6 w-6' }: FlagProps) {
-  // Se convierte el código de país a minúsculas, como lo requiere la URL del CDN.
+export function Flag({ countryCode, className }: FlagProps) {
   const lowerCaseCode = countryCode.toLowerCase();
-
-  // Construimos la URL del recurso de la bandera.
-  // Usamos flagcdn.com, un servicio optimizado para este propósito.
+  // Usamos flagcdn por su velocidad y consistencia
   const flagUrl = `https://flagcdn.com/${lowerCaseCode}.svg`;
 
   return (
-    <div className={`relative overflow-hidden rounded-sm ${className}`}>
+    <div className={cn("relative overflow-hidden rounded-sm inline-block shadow-sm", className || "h-4 w-6")}>
       <Image
         src={flagUrl}
         alt={`Bandera de ${countryCode}`}
-        // 'fill' hace que la imagen ocupe todo el espacio de su contenedor padre.
         fill
-        // 'sizes' ayuda a Next.js a priorizar la carga. 32px es un tamaño razonable.
         sizes="32px"
-        // 'unoptimized' puede ser útil para SVGs si no se requiere una optimización compleja.
-        // En este caso, lo dejamos para que Next.js maneje el cacheo.
+        className="object-cover"
+        unoptimized // SVG vectorial
       />
     </div>
   );
 }
+// FIN DEL ARCHIVO [apps/web-admin/src/components/ui/Flag.tsx]

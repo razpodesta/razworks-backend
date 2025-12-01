@@ -1,34 +1,41 @@
 /**
- * @fileoverview Perfiles de Usuario & Gamificación
+ * @fileoverview Perfiles de Usuario (Schema v2 - Realms)
+ * @module Infra/Database/Schema
  */
 import { pgTable, uuid, text, timestamp, integer, pgEnum, index } from 'drizzle-orm/pg-core';
 
-// Enum nativo de Postgres es eficiente (4 bytes en disco)
 export const roleEnum = pgEnum('user_role', ['CLIENT', 'FREELANCER', 'ADMIN']);
-export const tierEnum = pgEnum('razter_tier', ['PLANKTON', 'BARRACUDA', 'TIGER_SHARK', 'MEGALODON']);
+
+// CAMBIO CRÍTICO: Nuevo Enum de Postgres
+export const realmEnum = pgEnum('razter_realm', [
+  'THE_SCRIPT',
+  'THE_COMPILER',
+  'THE_KERNEL',
+  'THE_NETWORK',
+  'THE_SOURCE'
+]);
 
 export const profilesTable = pgTable('profiles', {
-  id: uuid('id').primaryKey(), // Vinculado a auth.users
+  id: uuid('id').primaryKey(),
 
-  // Datos Core
   email: text('email').notNull(),
   fullName: text('full_name').notNull(),
   avatarUrl: text('avatar_url'),
 
-  // Clasificación
   role: roleEnum('role').default('CLIENT').notNull(),
-  currentTier: tierEnum('current_tier').default('PLANKTON').notNull(),
 
-  // Gamificación (Ledger simplificado en perfil para lectura rápida)
+  // Columna actualizada: current_realm (antes current_tier)
+  currentRealm: realmEnum('current_realm').default('THE_SCRIPT').notNull(),
+
   totalXp: integer('total_xp').default(0).notNull(),
-  reputationScore: integer('reputation_score').default(100).notNull(), // 0-1000
+  reputationScore: integer('reputation_score').default(100).notNull(),
 
-  // Auditoría
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => {
   return {
     emailIdx: index('profile_email_idx').on(table.email),
-    tierIdx: index('profile_tier_idx').on(table.currentTier) // Para buscar "Todos los Megalodones"
+    // Índice para buscar "Todos los miembros del Kernel"
+    realmIdx: index('profile_realm_idx').on(table.currentRealm)
   };
 });

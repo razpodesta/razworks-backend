@@ -1,0 +1,23 @@
+{
+  "name": "gamification-engine",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/gamification-engine/src",
+  "projectType": "library",
+  "tags": ["scope:gamification", "type:feature"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/gamification-engine",
+        "main": "libs/gamification-engine/src/index.ts",
+        "tsConfig": "libs/gamification-engine/tsconfig.lib.json",
+        "assets": ["libs/gamification-engine/*.md"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    }
+  }
+}
