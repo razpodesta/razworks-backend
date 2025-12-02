@@ -4,3 +4,4 @@ export * from './health/health.dto';
 export * from './ai/extraction.dto';
 export * from './toolbox/toolbox.dto';
 export * from './projects/project.dto';
+export * from './notifications/notification.dto'; // ✅ Vital para que TS lo encuentre

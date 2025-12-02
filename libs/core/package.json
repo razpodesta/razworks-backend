@@ -6,7 +6,7 @@
   "types": "./src/index.d.ts",
   "dependencies": {
     "tslib": "^2.3.0",
-    "@razworks/shared/utils": "0.0.1",
+    "@razworks/shared-utils": "workspace:*",
     "zod": "^4.1.13"
   }
 }

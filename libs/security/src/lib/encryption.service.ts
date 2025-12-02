@@ -1,4 +1,3 @@
-// libs/security/src/lib/encryption.service.ts
 /**
  * @fileoverview Servicio de Cifrado AEAD (AES-256-GCM)
  * @module Security/Encryption
@@ -78,8 +77,9 @@ export class EncryptionService {
 
         // Si llegamos aquí, la integridad matemática es correcta.
         return decrypted;
-      } catch (error) {
-        // AuthTag mismatch: La clave no es la correcta. Continuamos.
+      } catch {
+        // ✅ FIX: Eliminado '_error' completamente. Catch sin variable (ES2019).
+        // AuthTag mismatch: La clave no es la correcta. Continuamos probando la siguiente.
         continue;
       }
     }

@@ -47,7 +47,6 @@ export class NotificationsResolver {
       // 🛡️ FIREWALL DE EVENTOS:
       // El evento solo se envía si el ID del destinatario en el payload
       // coincide con el ID solicitado en la suscripción.
-      // Nota: En producción real, 'variables.userId' debería validarse contra el token de conexión WebSocket.
       return payload[NOTIFICATION_EVENT].userId === variables.userId;
     },
     resolve: (payload) => {
@@ -55,7 +54,9 @@ export class NotificationsResolver {
       return payload[NOTIFICATION_EVENT];
     }
   })
-  notificationStream(@Args('userId') userId: string) {
+  // ✅ FIX: Renombrado a '_userId' para indicar que no se usa en el cuerpo del método
+  // (aunque es necesario para que GraphQL reciba el argumento 'variables.userId' usado en filter)
+  notificationStream(@Args('userId') _userId: string) {
     // Retorna un iterador asíncrono conectado al bus de Redis
     return this.pubSub.asyncIterator(NOTIFICATION_EVENT);
   }

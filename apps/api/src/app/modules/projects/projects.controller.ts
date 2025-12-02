@@ -2,13 +2,13 @@
  * @fileoverview Controlador de Proyectos
  * @module API/Projects
  */
-import { Controller, Post, Get, Body, Query, Req, UseGuards, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, Req, InternalServerErrorException } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto, CreateProjectSchema, SearchProjectDto, SearchProjectSchema } from '@razworks/dtos';
 import { ZodValidationPipe } from '@razworks/shared/utils';
-// import { AuthGuard } from ... (Pendiente de módulo Auth real, usamos mock user por ahora)
+// import { AuthGuard } from ... (Pendiente de módulo Auth real)
 
-// Mock Request Interface
+// Mock Request Interface (Simulación de Request autenticado)
 interface RequestWithUser {
   user?: { id: string };
 }
@@ -30,7 +30,6 @@ export class ProjectsController {
     if (result.isFailure) {
       const error = result.getError();
       // Mapeo de errores de Dominio a HTTP
-      // Aquí se ve la potencia del Result Pattern: Control total.
       throw new InternalServerErrorException(error.message);
     }
 
@@ -56,7 +55,7 @@ export class ProjectsController {
         title: p.title,
         status: p.status,
         budget: `${p.budgetCents / 100} ${p.currency}`, // Formateo simple
-        matchScore: 'Calculated internally' // Podríamos exponer el score de similitud si el Repo lo devolviera en la Entidad
+        matchScore: 'Calculated internally'
       }))
     };
   }

@@ -1,15 +1,18 @@
 /**
- * @fileoverview Controlador de Notificaciones
- * @module Libs/Notifications
- * @description Endpoints consumidos por el Widget del Frontend.
+ * @fileoverview Controlador de Notificaciones (REST)
+ * @module Notifications/Controller
+ * @description Endpoints consumidos por el Widget del Frontend y Webhooks.
  */
-import { Controller, Get, Patch, Body, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Patch, Body, Query, Req } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
-import { MarkAsReadDto, MarkAsReadSchema, NotificationFeedDto } from '@razworks/dtos';
+import {
+  MarkAsReadDto,
+  MarkAsReadSchema,
+  NotificationFeedDto
+} from '@razworks/dtos'; // ✅ Ahora estos existen
 import { ZodValidationPipe } from '@razworks/shared/utils';
-// import { JwtAuthGuard } from '@razworks/auth'; // Asumimos existencia o usamos mock por ahora
 
-// Mock de Request con Usuario (Hasta que el módulo de Auth esté 100% integrado)
+// Mock de Request con Usuario (Hasta integración Auth completa)
 interface RequestWithUser {
   user: { id: string };
 }
@@ -18,16 +21,24 @@ interface RequestWithUser {
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  // @UseGuards(JwtAuthGuard) <--- Descomentar cuando Auth esté activo
   @Get()
-  async getFeed(@Req() req: RequestWithUser, @Query('limit') limit = '20'): Promise<NotificationFeedDto> {
-    // Mock User ID si no hay Auth real aún (Para pruebas de integración)
+  async getFeed(
+    @Req() req: RequestWithUser,
+    @Query('limit') limit = '20',
+    @Query('offset') offset = '0' // ✅ Soporte para paginación
+  ): Promise<NotificationFeedDto> {
+
+    // Mock User ID para pruebas si no hay JWT
     const userId = req.user?.id || 'user-uuid-placeholder';
 
-    return this.notificationsService.getUserFeed(userId, Number(limit));
+    // ✅ FIX TS2554: Pasamos los 3 argumentos requeridos por el servicio
+    return this.notificationsService.getUserFeed(
+      userId,
+      Number(limit),
+      Number(offset)
+    );
   }
 
-  // @UseGuards(JwtAuthGuard)
   @Patch('read')
   async markAsRead(
     @Req() req: RequestWithUser,

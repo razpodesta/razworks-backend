@@ -3,6 +3,9 @@
  * @module Core
  */
 
+// Tipos Compartidos (Enums Críticos)
+export * from './shared/types'; // ✅ NUEVO
+
 // Entidades
 export * from './entities/user.entity';
 export * from './entities/project.entity';
@@ -14,8 +17,8 @@ export * from './value-objects/email.vo';
 
 // Eventos de Dominio
 export * from './events/domain-event.base';
-export * from './events/user-registered.event.ts';
-export * from './events/project-published.event.ts';
+export * from './events/user-registered.event';
+export * from './events/project-published.event';
 
 // Servicios de Dominio
 export * from './services/system-health.service';
@@ -23,7 +26,7 @@ export * from './services/system-health.service';
 // Puertos (Interfaces)
 export * from './ports/repositories/user.repository.port';
 export * from './ports/repositories/project.repository.port';
-
-// Shared
-export * from './shared/app-error';
 export * from './ports/events/event-dispatcher.port';
+
+// Shared Utils & Errors
+export * from './shared/app-error';

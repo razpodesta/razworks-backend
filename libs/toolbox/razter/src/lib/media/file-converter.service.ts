@@ -4,7 +4,6 @@
  * @module Toolbox/Razter
  * @description Utilidad para procesar archivos.
  */
-import { Logger } from '@nestjs/common'; // Opcional si queremos logs estructurados, o usar console
 import { RazterTier } from '@razworks/core'; // ✅ IMPORTADO DE CORE (DRY)
 
 export type ConversionFormat = 'mp3' | 'wav' | 'pdf';
@@ -12,7 +11,7 @@ export type ConversionFormat = 'mp3' | 'wav' | 'pdf';
 export interface ConversionRequest {
   fileId: string;
   targetFormat: ConversionFormat;
-  razterTier: RazterTier;
+  razterTier: RazterTier; // ✅ Se mantiene el uso de RazterTier
 }
 
 export interface ConversionResult {
@@ -34,6 +33,7 @@ export class FileConverterTool {
 
     // 1. Gating Check
     const allowedTiers = this.PERMISSIONS[targetFormat];
+    // Como RazterTier es un string union type en el core, la comparación es directa
     if (!allowedTiers.includes(razterTier)) {
       console.info(`[Toolbox] Access Denied: ${razterTier} -> ${targetFormat}`);
       return {

@@ -6,7 +6,6 @@
 import { Injectable } from '@nestjs/common';
 import { RazTool } from '@razworks/toolbox-shared';
 import { MediaConversionSchema, MediaConversionDto } from '@razworks/dtos';
-import { RazterRealm } from '@razworks/core';
 import { Result } from '@razworks/shared/utils';
 
 export interface ConversionOutput {
@@ -37,10 +36,8 @@ export class MediaConverterTool extends RazTool<MediaConversionDto, ConversionOu
 
     // Validamos lógica de negocio específica (ej: PDF solo para Source)
     // Aunque el Realm base es KERNEL, algunas opciones pueden requerir más nivel.
-    // Esto demuestra validación granular dentro de la herramienta.
     if (params.targetFormat === 'pdf') {
-      // Aquí podríamos chequear de nuevo si quisiéramos ser más estrictos,
-      // o asumir que el 'run' ya validó el acceso base.
+      // Lógica adicional si fuera necesaria
     }
 
     return Result.ok({

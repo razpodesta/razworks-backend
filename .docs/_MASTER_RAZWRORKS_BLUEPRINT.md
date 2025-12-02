@@ -192,4 +192,28 @@ La estructura física refleja los 7 Aparatos Conceptuales.
 *   Auditoría de seguridad final.
 
 ---
+ACTUALIZACION DE L CONTEXTO ANTERIOR
+
+### 2.1. Diagrama de Alto Nivel (Updated v2)
+Interacción basada en el patrón **BFF Virtual** y **Agencia Cognitiva**.
+
+1.  **Usuario:** Interactúa (WhatsApp/Web).
+2.  **Gateway:** Recibe, audita (`ConversationLogger`) y encola.
+3.  **Sistema Nervioso:** `OrchestratorWorker` toma el trabajo.
+4.  **Córtex Cognitivo (V2):**
+    *   Verifica `SemanticCache`.
+    *   Si es nuevo, consulta `ToolRegistry` para ver qué herramientas tiene el usuario.
+    *   Ejecuta `AgenticLoop` (Gemini + Tools).
+    *   Registra costos en `TokenMeter`.
+5.  **Acción:** El sistema ejecuta la herramienta (ej: `BudgetEstimator`) y responde.
+
+...
+
+#### 2.2.7. Toolbox & Agencia (Nuevo Aparato)
+*   **Rol:** Ejecución de Tareas de Negocio.
+*   **Estrategia:** Protocolo `RazTool`. Las herramientas son "Plugins" que la IA puede invocar de forma segura y tipada.
+
+---
+
+
 

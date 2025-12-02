@@ -55,7 +55,8 @@ export class AvailabilityEngine {
     try {
       Intl.DateTimeFormat(undefined, { timeZone: timezone });
       return true;
-    } catch (e) {
+    } catch {
+      // ✅ FIX: Optional catch binding. Variable 'e' eliminada.
       return false;
     }
   }

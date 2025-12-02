@@ -1,22 +1,26 @@
 /**
- * @fileoverview DTOs de Notificaciones
+ * @fileoverview DTOs de Notificaciones (Contracts)
  * @module Shared/DTOs/Notifications
- * @description Contratos Zod para el feed de alertas.
+ * @description Contratos Zod para el feed de alertas y operaciones de lectura.
  */
 import { z } from 'zod';
 
-// Esquema de una notificación individual (Salida)
+// --- ENUMS & TYPES ---
+export const NotificationStatusSchema = z.enum(['UNREAD', 'READ', 'ARCHIVED']);
+export type NotificationStatus = z.infer<typeof NotificationStatusSchema>;
+
+// --- ITEMS INDIVIDUALES ---
 export const NotificationItemSchema = z.object({
   id: z.string().uuid(),
-  action: z.string(), // El código legible (ej: 'PROJ_APPROVED')
-  metadata: z.record(z.unknown()), // JSON flexible para hidratar texto
-  status: z.enum(['UNREAD', 'READ', 'ARCHIVED']),
-  createdAt: z.string().datetime(), // ISO String
+  action: z.string(),
+  metadata: z.string(), // Serializado JSON
+  status: NotificationStatusSchema,
+  createdAt: z.string().datetime(), // ISO Date
 });
 
 export type NotificationItemDto = z.infer<typeof NotificationItemSchema>;
 
-// Esquema de respuesta del Feed (Salida)
+// --- FEED RESPONSE ---
 export const NotificationFeedSchema = z.object({
   unreadCount: z.number().int().nonnegative(),
   items: z.array(NotificationItemSchema),
@@ -24,7 +28,7 @@ export const NotificationFeedSchema = z.object({
 
 export type NotificationFeedDto = z.infer<typeof NotificationFeedSchema>;
 
-// Esquema para marcar como leídas (Entrada)
+// --- MARK AS READ REQUEST ---
 export const MarkAsReadSchema = z.object({
   notificationIds: z.array(z.string().uuid()),
 });

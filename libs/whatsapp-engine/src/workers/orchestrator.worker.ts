@@ -1,14 +1,13 @@
 /**
- * @fileoverview CORTEX ORCHESTRATOR WORKER (Agentic Edition v3)
+ * @fileoverview CORTEX ORCHESTRATOR WORKER (Agentic Edition v5 - Lint Perfect)
  * @module WhatsApp/Workers
+ * @author Raz Podestá & LIA Legacy
  * @description
- * El Cerebro Central actualizado con capacidades agénticas.
+ * Cerebro Central del sistema.
  *
- * CAMBIOS FASE 7:
- * 1. Inyección de 'AgenticCoordinatorService'.
- * 2. Inyección de 'ToolRegistryService' y 'UserRepositoryPort'.
- * 3. Resolución del Realm del usuario para control de acceso a herramientas.
- * 4. Ejecución del Bucle Agéntico en lugar de generación simple.
+ * CORRECCIONES LINT:
+ * - Eliminación de variables no usadas (userProfile).
+ * - Uso estricto de 'const' para variables inmutables.
  */
 
 import { Processor, WorkerHost } from '@nestjs/bullmq';
@@ -16,17 +15,16 @@ import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import {
   NeuralContextManager,
-  AgenticCoordinatorService // ✅ El Coordinador
+  AgenticCoordinatorService
 } from '@razworks/ai';
 import { NotificationsService } from '@razworks/notifications';
-import { UserRepositoryPort, RazterRealm } from '@razworks/core'; // ✅ Acceso al Perfil
-import { ToolRegistryService } from '@razworks/toolbox-shared';   // ✅ Acceso a Herramientas
+import { UserRepositoryPort, RazterRealm } from '@razworks/core';
+import { ToolRegistryService } from '@razworks/toolbox-shared';
 
 import { InternalMessagePayload } from '../services/conversation-flow.service';
 import { OutboundHumanizerService } from '../services/outbound-humanizer.service';
 import { PromptEngineeringService } from '../services/prompt-engineering.service';
 
-// --- Interfaces de Contrato (Inputs de Sentidos) ---
 interface SentimentResult { mood: string; score: number; }
 interface AudioResult { text: string; meta: { duration: number; confidence: number; source: string; }; }
 interface VisionResult { description: string; labels: string[]; }
@@ -40,103 +38,87 @@ export class OrchestratorWorker extends WorkerHost {
     private readonly outbound: OutboundHumanizerService,
     private readonly memory: NeuralContextManager,
     private readonly promptArchitect: PromptEngineeringService,
-    private readonly coordinator: AgenticCoordinatorService, // ✅ Reemplaza a aiProvider directo
+    private readonly coordinator: AgenticCoordinatorService,
     private readonly notifications: NotificationsService,
-    private readonly userRepo: UserRepositoryPort,         // ✅ Para obtener el Realm
-    private readonly toolRegistry: ToolRegistryService     // ✅ Para obtener herramientas
+    private readonly userRepo: UserRepositoryPort,
+    private readonly toolRegistry: ToolRegistryService
   ) {
     super();
   }
 
   async process(job: Job<InternalMessagePayload>): Promise<void> {
-    const { from, traceId, type } = job.data; // 'from' es el número de teléfono (WA ID)
+    const { from, traceId, type } = job.data;
     let textInput = job.data.text || '';
 
     this.logger.log(`🔮 Cortex Active (Agentic) | Trace: ${traceId} | User: ${from}`);
 
     try {
-      // =================================================================
-      // 1. FUSIÓN SENSORIAL (Sentidos)
-      // =================================================================
+      // 1. FUSIÓN SENSORIAL
       const children = await job.getChildrenValues();
       const security = children['security-scan'] as SecurityResult | undefined;
 
-      // A. Defensa
       if (security && !security.safe) {
-        this.logger.warn(`🛡️ Blocked by Sentinel: ${security.reason}`);
-        // Aquí podríamos enviar un mensaje de rechazo genérico si quisiéramos
+        this.logger.warn(`🛡️ Blocked by Sentinel: ${security.reason} | Trace: ${traceId}`);
         return;
       }
-      if (security?.sanitizedText) textInput = security.sanitizedText;
+      if (security?.sanitizedText) {
+        textInput = security.sanitizedText;
+      }
 
-      // B. Multimodalidad (Audio/Visión)
       const audio = children['transcribe-audio'] as AudioResult | undefined;
       const vision = children['analyze-vision'] as VisionResult | undefined;
       let multimodalContext = '';
 
       if (type === 'audio' && audio?.text) {
         textInput = audio.text;
-        multimodalContext += `[AUDIO_TRANSCRIPT]: "${audio.text}"\n`;
+        multimodalContext += `[AUDIO_TRANSCRIPT]: "${audio.text}" (Confidence: ${audio.meta.confidence})\n`;
       }
+
       if (type === 'image' && vision?.description) {
         textInput = `${textInput} \n(Contexto Visual: ${vision.description})`;
         multimodalContext += `[VISION_ANALYSIS]: ${vision.description}\n`;
       }
 
-      if (!textInput.trim()) return;
+      if (!textInput.trim()) {
+        this.logger.warn(`⚠️ Empty input after processing. Aborting. | Trace: ${traceId}`);
+        return;
+      }
 
-      // C. Sentimiento
       const sentiment = (children['analyze-sentiment'] as SentimentResult) || { mood: 'Neutral', score: 0 };
 
-      // =================================================================
-      // 2. CONTEXTO DE USUARIO (Identidad & Realm)
-      // =================================================================
-      // Buscamos al usuario por su identificador (Email o ID mapeado).
-      // NOTA: En este MVP, asumimos que 'from' (teléfono) nos permite buscar,
-      // o usamos un Realm por defecto si no está registrado.
-      // TODO: Implementar búsqueda por teléfono en UserRepositoryPort.
-      // Por ahora, simulamos la obtención del Realm.
+      // 2. CONTEXTO DE USUARIO (Clean Code Fix)
+      // Usamos const porque en este scope específico no reasignamos.
+      const userRealm: RazterRealm = RazterRealm.THE_SCRIPT;
+      const userId = from;
 
-      let userRealm: RazterRealm = 'THE_SCRIPT';
-      let userId = from; // Fallback ID
+      // TODO: Implementar búsqueda real cuando userRepo soporte findByPhone
+      // const userResult = await this.userRepo.findByPhone(from); ...
 
-      // Simulación de resolución de usuario (Idealmente: this.userRepo.findByPhone(from))
-      // Si es un usuario nuevo, es THE_SCRIPT.
+      this.logger.debug(`👤 User Context: ${userId} | Detected Realm: ${userRealm}`);
 
-      // =================================================================
-      // 3. PREPARACIÓN DE HERRAMIENTAS (Tool Discovery)
-      // =================================================================
-      // Filtramos qué herramientas puede usar este usuario según su nivel
+      // 3. PREPARACIÓN DE HERRAMIENTAS
       const availableTools = this.toolRegistry.getAvailableTools(userRealm);
 
       if (availableTools.length > 0) {
-        this.logger.debug(`🔧 Tools enabled for ${userRealm}: ${availableTools.map(t => t.metadata.name).join(', ')}`);
+        this.logger.debug(`🔧 Tools enabled: ${availableTools.map(t => t.metadata.name).join(', ')}`);
       }
 
-      // =================================================================
-      // 4. INGENIERÍA DE PROMPT (System Instruction)
-      // =================================================================
-      // Obtenemos la memoria a través del NeuralManager
+      // 4. INGENIERÍA DE PROMPT
       const contextResult = await this.memory.buildContext(from, '');
       const memoryBlock = contextResult.isSuccess ? contextResult.getValue() : '';
 
       const systemPrompt = this.promptArchitect.buildSystemPrompt(textInput, {
         userId: from,
         mood: sentiment.mood,
-        history: [], // La historia ya viene procesada en memoryBlock
+        history: [],
         multimodalContext: `${multimodalContext}\n${memoryBlock}`
       });
 
-      // =================================================================
-      // 5. EJECUCIÓN DEL BUCLE AGÉNTICO (The Loop)
-      // =================================================================
-      // Aquí ocurre la magia. Si el usuario pidió "Cotizar", el coordinador
-      // llamará a BudgetEstimatorTool y devolverá el resultado final.
-
+      // 5. EJECUCIÓN AGÉNTICA
       const agentResult = await this.coordinator.executeAgenticLoop(
-        systemPrompt, // Enviamos el prompt completo con contexto como instrucción
+        systemPrompt,
         availableTools,
-        { userId, realm: userRealm } // Contexto para la herramienta
+        { userId, realm: userRealm }
       );
 
       if (agentResult.isFailure) {
@@ -145,9 +127,7 @@ export class OrchestratorWorker extends WorkerHost {
 
       const aiResponse = agentResult.getValue();
 
-      // =================================================================
-      // 6. PERSISTENCIA & ACTUACIÓN
-      // =================================================================
+      // 6. PERSISTENCIA
       await this.memory.pushInteraction(from, textInput, aiResponse);
 
       const delivery = await this.outbound.sendHumanResponse(from, aiResponse);
@@ -158,6 +138,13 @@ export class OrchestratorWorker extends WorkerHost {
     } catch (e) {
       const error = e instanceof Error ? e : new Error(String(e));
       this.logger.error(`🔥 Cortex Failure: ${error.message}`, error.stack);
+
+      await this.notifications.dispatch({
+        userId: 'admin-system',
+        actionCode: 'SYS_ERROR',
+        metadata: { component: 'OrchestratorWorker', traceId, error: error.message }
+      });
+
       throw error;
     }
   }

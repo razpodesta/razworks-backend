@@ -28,13 +28,13 @@ export class AuditDbStream extends Writable {
   }
 
   override _write(
-    chunk: any,
+    chunk: unknown, // ✅ FIX: 'any' reemplazado por 'unknown'
     encoding: BufferEncoding,
     callback: (error?: Error | null) => void
   ): void {
     try {
-      // Pino envía strings JSON
-      const logString = chunk.toString();
+      // Pino envía strings JSON. Convertimos de forma segura.
+      const logString = (chunk as Buffer | string).toString();
       const entry: LogEntry = JSON.parse(logString);
 
       // NIVEL 50 = ERROR, 60 = FATAL en Pino estándar
@@ -46,7 +46,8 @@ export class AuditDbStream extends Writable {
           process.stderr.write(`🚨 FATAL: Audit Log Failed: ${err.message}\n`);
         });
       }
-    } catch (parseError) {
+    } catch {
+      // ✅ FIX: Variable 'parseError' eliminada (Optional Catch Binding)
       // Si el JSON viene roto (muy raro en Pino), no rompemos el stream
     } finally {
       // Siempre llamamos al callback para liberar el stream

@@ -5,6 +5,14 @@
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "dependencies": {
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "zod": "^4.1.13",
+    "@nestjs/common": "^11.0.0",
+    "@google/genai": "^1.30.0",
+    "@razworks/shared-utils": "workspace:*",
+    "@razworks/database": "workspace:*",
+    "@razworks/toolbox-shared": "workspace:*",
+    "@razworks/core": "workspace:*",
+    "@upstash/redis": "^1.31.0"
   }
 }
